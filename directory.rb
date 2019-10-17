@@ -1,4 +1,3 @@
-#  let's put all students into an array
 =begin
 students = [
   { name: "Dr. Hannibal Lecter", cohort: :november },
@@ -22,9 +21,24 @@ def print_header
 end
 
 def print(students)
+  #  'each()' version
   students.each.with_index { |student, i| 
-  puts "#{ i+1 } #{ student[:name] } (#{ student[:cohort] } cohort)"
+    puts "#{ i + 1 } #{ student[:name] } (#{ student[:cohort] } cohort)"
   }
+
+  #  'until' version
+  i = 0
+  until i == students.length
+    puts "#{ i + 1 } #{ students[i][:name] } (#{ students[i][:cohort] } cohort)"
+    i += 1
+  end
+
+  #  'while' version
+  j = 0
+  while j < students.length
+    puts "#{ j + 1 } #{ students[j][:name] } (#{ students[j][:cohort] } cohort)"
+    j += 1
+  end
 end
 
 def print_footer(students)
@@ -84,7 +98,6 @@ def by_initial(initial, students)
   puts "Students filtered by initial '#{initial}'"
   puts "-------------"
   puts filtered_list
-  #  puts "-------------"
   puts "Total Students: #{filtered_list.count}"
 end
 
@@ -101,7 +114,6 @@ def by_length(length, students)
   puts "Students filed under names with no more than #{length} characters"
   puts "-------------"
   puts filtered_list
-  #  puts "-------------"
   puts "Total Students: #{filtered_list.count}"
 end
 
