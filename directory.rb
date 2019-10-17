@@ -27,15 +27,15 @@ class Cohort
       
       #  get rest of the data for the student
       puts "Please enter #{ new_student.name }'s age"
-      new_student.age = gets.chomp
+      new_student.age = gets.delete_suffix("\n")
       puts "Please enter #{ new_student.name }'s gender ( M / F / NB / O )"
-      new_student.gender = gets.chomp.upcase!
+      new_student.gender = gets.delete_suffix("\n").upcase
       puts "Please enter #{ new_student.name }'s height (cm)"
-      new_student.height = gets.chomp
+      new_student.height = gets.delete_suffix("\n")
       puts "Please enter #{ new_student.name }'s country of birth"
-      new_student.country_of_birth = gets.chomp.capitalize!
+      new_student.country_of_birth = gets.delete_suffix("\n").capitalize
       puts "Please enter #{ new_student.name }'s disability status ( true / false )"
-      new_student.is_disabled = gets.chomp
+      new_student.is_disabled = gets.delete_suffix("\n")
       
       #  add the student hash to the array
       @students << new_student
