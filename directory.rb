@@ -12,6 +12,7 @@ class Cohort
 
   #  add one or multiple students from CLI
   def input_student
+    puts "Inputting names for the #{@month} cohort"
     puts "Please enter the first name -- (type 'abort' to exit)"
     puts "-" * 53
 
@@ -88,7 +89,9 @@ class Cohort
   #  body of table
   def print_body
     @students.each.with_index { |student, i| 
-      puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + "ID: #{student.student_number}".ljust(25) + "(#{ student.cohort } cohort)"
+      puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + 
+      "ID: #{student.student_number}".ljust(25) +
+      "(#{ student.cohort } cohort)"
     }
   end
 
@@ -128,7 +131,8 @@ class Cohort
   def by_initial(initial)
     natural_names = no_prefix
   
-    #  filters natural names by first initial, then picks corresponding entry from original array
+    #  filters natural names by first initial, then picks corresponding 
+    #  entry from original array
     filtered_list = []
     natural_names.each.with_index { |student, i| 
       filtered_list << @students[i].name if student.chr == initial 
@@ -148,7 +152,8 @@ class Cohort
   def by_length(length)
     natural_names = no_prefix
   
-    #  filters out names over a certain number of characters, then picks corresponding entry from original array
+    #  filters out names over a certain number of characters, 
+    #  then picks corresponding entry from original array
     filtered_list = []
     natural_names.each.with_index { |student, i| 
       filtered_list << @students[i].name if student.length <= length 
@@ -210,7 +215,7 @@ class Student
   end
 end
 
-#  create "Villains Academy" Cohort object
+#  create "Villains Academy" November Cohort object
 villains_november = Cohort.new("November")
 
 #  converted test entries to Student objects
@@ -229,17 +234,33 @@ norman_bates = Student.new("Norman Bates")
 
 #  add all Student objects to "Villains Academy" Cohort object
 villains_november.add_student(sam, vader, hannibal, nurse_ratched, 
-                              michael_corleone, alex_delarge, wicked_witch,
-                              terminator, freddy_krueger, joker, joffrey,
-                              norman_bates)
+                              michael_corleone, alex_delarge)
 
-#  test methods in CLI            
+#  test methods in CLI
+
+puts villains_november.students[0].student_number
 villains_november.roster
 
-students = villains_november.input_student
+villains_november.input_student
 puts " "
 villains_november.roster
 puts " "
 villains_november.by_initial("W")
 puts " "
 villains_november.by_length(10)
+
+#  create "Villains Academy" December Cohort object
+villains_december = Cohort.new("December")
+
+villains_december.add_student(wicked_witch, terminator, freddy_krueger, 
+                              joker, joffrey, norman_bates)
+
+villains_december.roster
+
+villains_december.input_student
+puts " "
+villains_december.roster
+puts " "
+villains_december.by_initial("S")
+puts " "
+villains_december.by_length(7)
