@@ -14,7 +14,34 @@ students = [
 ]
 =end
 
+#  current classes
+
+class Student
+  def initialize(name, age, gender, height_in_cm, country_of_birth, is_disabled=false)
+    @name = name
+    @age = age
+    genders = ["M", "F", "NB", "O"] #  Male, Female, Non-Binary, Other
+    @gender = gender if genders.include?(gender)
+    @height = height_in_cm
+    @country_of_birth = country_of_birth
+    @is_disabled = is_disabled
+    @cohort = :november
+    @student_number = rand(10000000)
+  end
+
+  def quick_facts
+    puts "Student #{@student_number} (#{@cohort.capitalize})"
+    puts "Name: #{@name}"
+    puts "Age: #{@age}"
+    puts "Gender: #{@gender}"
+    puts "Height: #{@height}"
+    puts "Country of Birth: #{@country_of_birth}"
+    puts "Disabled Status: #{@is_disabled}"
+  end
+end
+
 #  current methods
+
 def print_header
   puts "The students of Villains Academy"
   puts "-------------"
@@ -38,9 +65,9 @@ def input_students
   students = []
   #  get the first name
   name = gets.chomp
-
   #  while the name is not empty, repeat this code
   while !name.empty?
+    
     students << { name: name, cohort: :november }
     puts "Now we have #{ students.count } students"
     #  add the student hash to the array
@@ -104,6 +131,9 @@ def by_length(length, students)
 end
 
 #  nothing happens until we call the methods
+Sam = Student.new("Sam", 25, "M", "198", "England")
+Sam.quick_facts
+
 students = input_students
 print_header
 print(students)
