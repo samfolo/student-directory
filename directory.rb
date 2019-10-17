@@ -16,6 +16,8 @@ students = [
 
 #  current classes
 class Cohort
+  attr_reader :month, :students, :number_of_students
+
   def initialize(month)
     @month = month
     @students = []
@@ -23,8 +25,8 @@ class Cohort
   end
 
   def input_students
-    puts "Please enter the names of the students"
-    puts "To finish, just hit return twice"
+    puts "Please enter your first name"
+    puts "(To finish, just hit return twice)"
  
     #  get the first name
     name = gets.chomp
@@ -32,7 +34,7 @@ class Cohort
     #  while the name is not empty, repeat this code
     while !name.empty?
       new_student = Student.new(name)
-      @students << new_student
+      
       puts "Please enter #{new_student.name}'s age"
       new_student.age = gets.chomp
       puts "Please enter #{new_student.name}'s gender"
@@ -43,17 +45,36 @@ class Cohort
       new_student.country_of_birth = gets.chomp
       puts "Please enter #{new_student.name}'s disability status (true/false)"
       new_student.is_disabled = gets.chomp
+      
+      #  add the student hash to the array
+      @students << new_student
       puts "Now we have #{ @students.count } students"
       new_student.quick_facts
-      #  add the student hash to the array
       puts "Please enter another name"
-      puts "To finish, just hit return twice"
+      puts "(To finish, just hit return twice)"
       # get another name from the user
       name = gets.chomp
     end
+      puts "-------------"
+      puts "Goodbye"
+      puts "-------------"
+      puts " "
+      puts " "
+      puts "You entered #{ @students.count } students:"
+      puts " "
+      self.student_profiles
+  end
+
+  def add_student(student)
+    @students.push(student) if student.is_a?(Student)
+  end
   
-    #  return the array of students
-    @students
+  def student_profiles
+    @students.each.with_index { |student, i| 
+        puts "#{ i+1 })"
+        student.quick_facts 
+    }
+    puts " "
   end
 
   def print_header
@@ -61,24 +82,31 @@ class Cohort
     puts "-------------"
   end
   
-  def print(students)
-    #  'each()' version
-    students.each.with_index { |student, i| 
-      puts "#{ i + 1 } #{ student[:name] } (#{ student[:cohort] } cohort)"
+  def print_body
+    @students.each.with_index { |student, i| 
+      puts "#{ i + 1 } #{ student.name } (#{ student.cohort } cohort)"
     }
   end
   
-  def print_footer(students)
-    puts "Overall, we have #{ students.count } great students"
+  def print_footer
+    puts @students.count > 1 ?
+    "Overall, we have #{ @students.count } great students" : 
+    "We only have #{ @students.count } student."
   end
 
-  def no_prefix(students)
+  def roster
+    print_header
+    print_body
+    print_footer
+  end
+
+  def no_prefix
     prefixes = ["The", "Mr", "Master", "Mrs", "Ms", "Miss", "Mx", "Dr.", "Sir", 
                 "Madam", "Lt.", "Sgt.", "..."]
     
     #  splits each name into a sub-array of words
     split_names = [] 
-    students.each { |student| split_names << student[:name].split(' ') }
+    @students.each { |student| split_names << student.name.split(' ') }
   
     #  takes off first word in name if it's in the list of prefixes (& to_s)
     removed_prefixes = split_names.map { |student|
@@ -89,41 +117,42 @@ class Cohort
     removed_prefixes
   end
 
-  def by_initial(initial, students)
-    natural_names = no_prefix(students)
+  def by_initial(initial)
+    natural_names = no_prefix
   
     #  filters natural names by first initial, then picks corresponding entry from original array
     filtered_list = []
     natural_names.each.with_index { |student, i| 
-      filtered_list << students[i][:name] if student.chr == initial 
+      filtered_list << @students[i].name if student.chr == initial 
     }
   
     # putses result to console
-    puts "Students filtered by initial '#{initial}'"
+    puts "Students filtered by initial '#{ initial }'"
     puts "-------------"
     puts filtered_list
-    puts "Total Students: #{filtered_list.count}"
+    puts "Total Students: #{ filtered_list.count }"
   end
   
-  def by_length(length, students)
-    natural_names = no_prefix(students)
+  def by_length(length)
+    natural_names = no_prefix
   
-    #  filters names of under a certain length
+    #  filters out names over a certain number of characters, then picks corresponding entry from original array
     filtered_list = []
     natural_names.each.with_index { |student, i| 
-      filtered_list << students[i][:name] if student.length <= length 
+      filtered_list << @students[i].name if student.length <= length 
     }
   
     # putses result to console
-    puts "Students filed under names with no more than #{length} characters"
+    puts "Students filed under names with no more than #{ length } characters"
     puts "-------------"
     puts filtered_list
-    puts "Total Students: #{filtered_list.count}"
+    puts "Total Students: #{ filtered_list.count }"
   end
 end
 
 class Student
-  attr_accessor :name, :age, :gender, :height, :country_of_birth, :is_disabled
+  attr_accessor :name, :age, :gender, :height, :country_of_birth,
+                :is_disabled, :cohort, :student_number
 
   def initialize(name, args={})
     options = defaults.merge(args)
@@ -150,23 +179,32 @@ class Student
   end
 
   def quick_facts
-    puts "Student #{@student_number} (#{@cohort.capitalize})"
-    puts "Name: #{@name}"
-    puts "Age: #{@age}"
-    puts "Gender: #{@gender}"
-    puts "Height: #{@height}"
-    puts "Country of Birth: #{@country_of_birth}"
-    puts "Disabled Status: #{@is_disabled}"
+    puts "-------------"
+    puts "Student #{ @student_number } (#{ @cohort.capitalize })"
+    puts "Name: #{ @name }"
+    puts "Age: #{ @age }"
+    puts "Gender: #{ @gender }"
+    puts "Height: #{ @height }"
+    puts "Country of Birth: #{ @country_of_birth }"
+    puts "Disabled Status: #{ @is_disabled }"
+    puts "-------------"
   end
 end
 
 #  current methods
 
 
-#  nothing happens until we call the methods
-Sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,"})
-Sam.quick_facts
+villains_november = Cohort.new("November")
+sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,"})
+villains_november.add_student(sam) # testing whether I can add to students from outside
+villains_november.roster
+students = villains_november.input_students
+puts " "
+villains_november.roster
+puts " "
+villains_november.by_initial("S")
+puts " "
+villains_november.by_length(6)
+puts " "
 
-makers_november = Cohort.new("November")
-students = makers_november.input_students
 
