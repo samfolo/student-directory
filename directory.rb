@@ -25,20 +25,6 @@ def print(students)
   students.each.with_index { |student, i| 
     puts "#{ i + 1 } #{ student[:name] } (#{ student[:cohort] } cohort)"
   }
-
-  #  'until' version
-  i = 0
-  until i == students.length
-    puts "#{ i + 1 } #{ students[i][:name] } (#{ students[i][:cohort] } cohort)"
-    i += 1
-  end
-
-  #  'while' version
-  j = 0
-  while j < students.length
-    puts "#{ j + 1 } #{ students[j][:name] } (#{ students[j][:cohort] } cohort)"
-    j += 1
-  end
 end
 
 def print_footer(students)
