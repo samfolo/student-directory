@@ -1,13 +1,30 @@
 #  current classes
 
+#  each academy instance
+class Academy
+  attr_reader :name, :cohorts
+
+  def initialize(name)
+    @name = name
+    @cohorts = []
+  end
+
+  def add_cohort(*entries)
+    entries.each{ |entry| 
+      entry.academy = @name
+      @cohorts.push(entry) if entry.is_a?(Cohort)
+    }
+  end
+end
+
 # each cohort instance
 class Cohort
-  attr_reader :month, :students, :number_of_students
+  attr_reader :academy, :month, :students
 
   def initialize(month)
+    @academy
     @month = month
     @students = []
-    @number_of_students = @students.length
   end
 
   #  add one or multiple students from CLI
@@ -67,7 +84,6 @@ class Cohort
       entry.cohort = @month
       @students.push(entry) if entry.is_a?(Student)
     }
-    
   end
   
   def student_profiles
@@ -113,7 +129,7 @@ class Cohort
 
   def no_prefix
     prefixes = ["The", "Mr", "Master", "Mrs", "Ms", "Miss", "Mx", "Dr.", "Nurse",
-                "Sir", "Madam", "Lt.", "Sgt.", "..."]
+                "Sir", "Madam", "Lt.", "Sgt.", "Darth", "..."]
     
     #  splits each name into a sub-array of words
     split_names = [] 
@@ -215,9 +231,6 @@ class Student
   end
 end
 
-#  create "Villains Academy" November Cohort object
-villains_november = Cohort.new("November")
-
 #  converted test entries to Student objects
 sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,"})
 vader = Student.new("Darth Vader")
@@ -232,35 +245,40 @@ joker = Student.new("The Joker")
 joffrey = Student.new("Joffrey Baratheon")
 norman_bates = Student.new("Norman Bates")
 
+#  create "Villains Academy" November Cohort object
+villains_academy = Academy.new("Villains Academy")
+
+#  create "Villains Academy" November Cohort object
+va_november = Cohort.new("November")
+
 #  add all Student objects to "Villains Academy" Cohort object
-villains_november.add_student(sam, vader, hannibal, nurse_ratched, 
-                              michael_corleone, alex_delarge)
+va_november.add_student(sam, vader, hannibal, nurse_ratched, 
+                        michael_corleone, alex_delarge)
 
 #  test methods in CLI
+va_november.roster
 
-puts villains_november.students[0].student_number
-villains_november.roster
-
-villains_november.input_student
+va_november.input_student
 puts " "
-villains_november.roster
+va_november.roster
 puts " "
-villains_november.by_initial("W")
+va_november.by_initial("W")
 puts " "
-villains_november.by_length(10)
+va_november.by_length(10)
 
 #  create "Villains Academy" December Cohort object
-villains_december = Cohort.new("December")
+va_december = Cohort.new("December")
 
-villains_december.add_student(wicked_witch, terminator, freddy_krueger, 
-                              joker, joffrey, norman_bates)
+va_december.add_student(wicked_witch, terminator, freddy_krueger, 
+                        joker, joffrey, norman_bates)
 
-villains_december.roster
+va_december.roster
 
-villains_december.input_student
+va_december.input_student
 puts " "
-villains_december.roster
+va_december.roster
 puts " "
-villains_december.by_initial("S")
+va_december.by_initial("J")
 puts " "
-villains_december.by_length(7)
+va_december.by_length(7)
+
