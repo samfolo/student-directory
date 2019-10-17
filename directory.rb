@@ -26,7 +26,7 @@ class Cohort
 
   def input_students
     puts "Please enter the first name -- (type 'abort' to exit)"
-    puts "-----------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
     #  get the first name
     name = gets.chomp
     return if name == "abort"
@@ -51,8 +51,8 @@ class Cohort
       puts " "
       puts "#{ @students.count } students added.  Last entry:".center(51)
       new_student.quick_facts
-      puts "Please enter another name -- (press 'enter' to exit)"
-      puts "---------------------------------------------------"
+      puts "Please enter another name -- (press 'return' to exit)"
+      puts "----------------------------------------------------------------------------------------------"
       # get another name from the user
       name = gets.chomp
     end
@@ -66,8 +66,11 @@ class Cohort
       self.student_profiles
   end
 
-  def add_student(student)
-    @students.push(student) if student.is_a?(Student)
+  def add_student(*entries)
+    entries.each{ |entry| 
+      @students.push(entry) if entry.is_a?(Student)
+    }
+    
   end
   
   def student_profiles
@@ -79,20 +82,20 @@ class Cohort
   end
 
   def print_header
-    puts "------------------------------------------------------------------------------"
-    puts "|||||||||||||||        The Students of Villains Academy        |||||||||||||||"
-    puts "------------------------------------------------------------------------------"
-    puts "------------------------------------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
+    puts "|||||||||||||||||||||||        The Students of Villains Academy        |||||||||||||||||||||||"
+    puts "----------------------------------------------------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
   end
   
   def print_body
     @students.each.with_index { |student, i| 
-      puts "#{ (i + 1).to_s.ljust(11) }#{ student.name.ljust(25) }" + "ID: #{student.student_number}".ljust(25) + "(#{ student.cohort } cohort)"
+      puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + "ID: #{student.student_number}".ljust(25) + "(#{ student.cohort } cohort)"
     }
   end
   
   def print_footer
-    puts "------------------------------------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
     puts @students.count > 1 ?
     "Overall, we have #{ @students.count } great students" : 
     "We only have #{ @students.count } student."
@@ -134,9 +137,9 @@ class Cohort
   
     # putses result to console
     puts "Students filtered by initial '#{ initial }'"
-    puts "---------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
     puts filtered_list
-    puts "---------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
     puts "Total Students: #{ filtered_list.count }"
     puts " "
     puts " "
@@ -154,9 +157,9 @@ class Cohort
     # putses result to console
     puts "Students filed under names with no more than:"
     puts "#{ length } characters"
-    puts "---------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
     puts filtered_list
-    puts "---------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
     puts "Total Students: #{ filtered_list.count }"
     puts " "
     puts " "
@@ -192,7 +195,7 @@ class Student
   end
 
   def quick_facts
-    puts "---------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
     puts "Student #{ @student_number } (#{ @cohort.capitalize })"
     puts "Name: #{ @name }"
     puts "Age: #{ @age }"
@@ -200,15 +203,34 @@ class Student
     puts "Height: #{ @height }"
     puts "Country of Birth: #{ @country_of_birth }"
     puts "Disabled Status: #{ @is_disabled }"
-    puts "---------------------------------------------------"
+    puts "----------------------------------------------------------------------------------------------"
   end
 end
 
 
 villains_november = Cohort.new("November")
+
+# converted test entries to Student objects
 sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,"})
-villains_november.add_student(sam)
+vader = Student.new("Darth Vader")
+hannibal = Student.new("Dr. Hannibal Lecter")
+nurse_ratched = Student.new("Nurse Ratched")
+michael_corleone = Student.new("Michael Corleone")
+alex_delarge = Student.new("Alex DeLarge")
+wicked_witch = Student.new("The Wicked Witch of the West")
+terminator = Student.new("Terminator")
+freddy_krueger = Student.new("Freddy Krueger")
+joker = Student.new("The Joker")
+joffrey = Student.new("Joffrey Baratheon")
+norman_bates = Student.new("Norman Bates")
+
+# add all Student objects to Villains Academy Cohort object
+villains_november.add_student(sam, vader, hannibal, nurse_ratched, 
+                              michael_corleone, alex_delarge, wicked_witch,
+                              terminator, freddy_krueger, joker, joffrey,
+                              norman_bates)
 villains_november.roster
+
 students = villains_november.input_students
 puts " "
 villains_november.roster
@@ -216,6 +238,3 @@ puts " "
 villains_november.by_initial("S")
 puts " "
 villains_november.by_length(6)
-puts " "
-
-
