@@ -23,16 +23,17 @@ class Cohort
     while !name.empty?
       #  create a student
       new_student = Student.new(name)
+      new_student.cohort = @month
       
       #  get rest of the data for the student
       puts "Please enter #{ new_student.name }'s age"
       new_student.age = gets.chomp
       puts "Please enter #{ new_student.name }'s gender ( M / F / NB / O )"
-      new_student.gender = gets.chomp
-      puts "Please enter #{ new_student.name }'s height"
+      new_student.gender = gets.chomp.upcase!
+      puts "Please enter #{ new_student.name }'s height (cm)"
       new_student.height = gets.chomp
       puts "Please enter #{ new_student.name }'s country of birth"
-      new_student.country_of_birth = gets.chomp
+      new_student.country_of_birth = gets.chomp.capitalize!
       puts "Please enter #{ new_student.name }'s disability status ( true / false )"
       new_student.is_disabled = gets.chomp
       
@@ -40,7 +41,7 @@ class Cohort
       @students << new_student
       puts " "
       puts " "
-      puts "#{ @students.count } students added.  Last entry:".center(51)
+      puts "Student added. New total: #{ @students.count }.  Last entry:".center(53)
       new_student.quick_facts
       puts "Please enter another name -- (press 'return' to exit)"
       puts "-" * 53
@@ -54,7 +55,7 @@ class Cohort
       puts "-------------".center(50)
       puts " ".center(50)
       puts " ".center(50)
-      puts "You entered #{ @students.count } students:"
+      puts "There are now #{ @students.count } students:"
       puts " "
       self.student_profiles
   end
@@ -62,6 +63,7 @@ class Cohort
   #  add one or multiple students to cohort within editor
   def add_student(*entries)
     entries.each{ |entry| 
+      entry.cohort = @month
       @students.push(entry) if entry.is_a?(Student)
     }
     
@@ -107,8 +109,8 @@ class Cohort
   end
 
   def no_prefix
-    prefixes = ["The", "Mr", "Master", "Mrs", "Ms", "Miss", "Mx", "Dr.", "Sir", 
-                "Madam", "Lt.", "Sgt.", "..."]
+    prefixes = ["The", "Mr", "Master", "Mrs", "Ms", "Miss", "Mx", "Dr.", "Nurse",
+                "Sir", "Madam", "Lt.", "Sgt.", "..."]
     
     #  splits each name into a sub-array of words
     split_names = [] 
@@ -178,7 +180,7 @@ class Student
     @height = options.fetch(:height)
     @country_of_birth = options.fetch(:country_of_birth)
     @is_disabled = options.fetch(:is_disabled)
-    @cohort = :november
+    @cohort
     random_id = rand(10000000)
     @student_number = "0" * (7 - random_id.to_s.length) + random_id.to_s
   end
@@ -197,7 +199,7 @@ class Student
   #  display all stats for a Student
   def quick_facts
     puts "-" * 53
-    puts "Student #{ @student_number } (#{ @cohort.capitalize })"
+    puts "Student #{ @student_number } (#{ @cohort })"
     puts "Name: #{ @name }"
     puts "Age: #{ @age }"
     puts "Gender: #{ @gender }"
@@ -208,7 +210,7 @@ class Student
   end
 end
 
-#  create "Villains Academy" Cohort ocject
+#  create "Villains Academy" Cohort object
 villains_november = Cohort.new("November")
 
 #  converted test entries to Student objects
