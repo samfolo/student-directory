@@ -22,9 +22,9 @@ def print_header
 end
 
 def print(students)
-  #students.each.with_index { |student, i| 
-  #  puts "#{ i+1 } #{ student[:name] } (#{ student[:cohort] } cohort)"
-  #}
+  students.each.with_index { |student, i| 
+  puts "#{ i+1 } #{ student[:name] } (#{ student[:cohort] } cohort)"
+  }
 end
 
 def print_footer(students)
@@ -71,8 +71,7 @@ def no_prefix(students)
   removed_prefixes
 end
 
-def filter_first_initial(initial, students)
-
+def by_initial(initial, students)
   natural_names = no_prefix(students)
 
   #  filters natural names by first initial, then picks corresponding entry from original array
@@ -85,8 +84,25 @@ def filter_first_initial(initial, students)
   puts "Students filtered by initial '#{initial}'"
   puts "-------------"
   puts filtered_list
+  #  puts "-------------"
+  puts "Total Students: #{filtered_list.count}"
+end
+
+def by_length(length, students)
+  natural_names = no_prefix(students)
+
+  #  filters names of under a certain length
+  filtered_list = []
+  natural_names.each.with_index { |student, i| 
+    filtered_list << students[i][:name] if student.length <= length 
+  }
+
+  # putses result to console
+  puts "Students filed under names with no more than #{length} characters"
   puts "-------------"
-  puts "#{filtered_list.count} students under '#{initial}'"
+  puts filtered_list
+  #  puts "-------------"
+  puts "Total Students: #{filtered_list.count}"
 end
 
 #  nothing happens until we call the methods
@@ -95,4 +111,6 @@ print_header
 print(students)
 print_footer(students)
 puts " "
-filter_first_initial('S', students)
+by_initial('S', students)
+puts " "
+by_length(12, students)
