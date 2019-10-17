@@ -22,9 +22,9 @@ def print_header
 end
 
 def print(students)
-  students.each_with_index { |student, i| 
-    puts "#{ i+1 } #{ student[:name] } (#{ student[:cohort] } cohort)"
-  }
+  #students.each.with_index { |student, i| 
+  #  puts "#{ i+1 } #{ student[:name] } (#{ student[:cohort] } cohort)"
+  #}
 end
 
 def print_footer(students)
@@ -54,8 +54,35 @@ def input_students
   students
 end
 
+def filter_first_initial(initial, students)
+  prefixes = ["The", "Mr", "Master", "Mrs", "Ms", "Miss", "Mx", "Dr.", "Sir", 
+              "Madam", "Lt.", "Sgt.", "..."]
+  
+  split_names = [] #  splits each name into a sub-array of words
+students.each { |student| split_names << student[:name].split(' ') }
+
+  removed_prefixes = split_names.map { |student|
+    student.shift if student.length > 1 && prefixes.include?(student[0])
+    student.join(' ')
+  } #  takes off first word in name if it's in the list of prefixes (& to_s)
+
+  #  filters natural names by first initial, then picks corresponding entry from original array
+  filtered_list = []
+  removed_prefixes.each.with_index { |student, i| 
+    filtered_list << students[i][:name] if student.chr == initial 
+  }
+
+  puts "Students filtered by initial '#{initial}'"
+  puts "-------------"
+  puts filtered_list
+  puts "-------------"
+  puts "#{filtered_list.count} students under '#{initial}'"
+end
+
 #  nothing happens until we call the methods
 students = input_students
 print_header
 print(students)
 print_footer(students)
+puts " "
+filter_first_initial('S', students)
