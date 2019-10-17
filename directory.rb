@@ -25,41 +25,42 @@ class Cohort
   end
 
   def input_students
-    puts "Please enter your first name"
-    puts "(To finish, just hit return twice)"
- 
+    puts "Please enter the first name -- (type 'abort' to exit)"
+    puts "-----------------------------------------------------"
     #  get the first name
     name = gets.chomp
-    
+    return if name == "abort"
     #  while the name is not empty, repeat this code
     while !name.empty?
       new_student = Student.new(name)
       
-      puts "Please enter #{new_student.name}'s age"
+      puts "Please enter #{ new_student.name }'s age"
       new_student.age = gets.chomp
-      puts "Please enter #{new_student.name}'s gender"
+      puts "Please enter #{ new_student.name }'s gender"
       new_student.gender = gets.chomp
-      puts "Please enter #{new_student.name}'s height"
+      puts "Please enter #{ new_student.name }'s height"
       new_student.height = gets.chomp
-      puts "Please enter #{new_student.name}'s country of birth"
+      puts "Please enter #{ new_student.name }'s country of birth"
       new_student.country_of_birth = gets.chomp
-      puts "Please enter #{new_student.name}'s disability status (true/false)"
+      puts "Please enter #{ new_student.name }'s disability status (true/false)"
       new_student.is_disabled = gets.chomp
       
       #  add the student hash to the array
       @students << new_student
-      puts "Now we have #{ @students.count } students"
+      puts " "
+      puts " "
+      puts "#{ @students.count } students added.  Last entry:".center(51)
       new_student.quick_facts
-      puts "Please enter another name"
-      puts "(To finish, just hit return twice)"
+      puts "Please enter another name -- (press 'enter' to exit)"
+      puts "---------------------------------------------------"
       # get another name from the user
       name = gets.chomp
     end
-      puts "-------------"
-      puts "Goodbye"
-      puts "-------------"
-      puts " "
-      puts " "
+      puts "-------------".center(50)
+      puts "Goodbye".center(50)
+      puts "-------------".center(50)
+      puts " ".center(50)
+      puts " ".center(50)
       puts "You entered #{ @students.count } students:"
       puts " "
       self.student_profiles
@@ -78,20 +79,25 @@ class Cohort
   end
 
   def print_header
-    puts "The students of Villains Academy"
-    puts "-------------"
+    puts "------------------------------------------------------------------------------"
+    puts "|||||||||||||||        The Students of Villains Academy        |||||||||||||||"
+    puts "------------------------------------------------------------------------------"
+    puts "------------------------------------------------------------------------------"
   end
   
   def print_body
     @students.each.with_index { |student, i| 
-      puts "#{ i + 1 } #{ student.name } (#{ student.cohort } cohort)"
+      puts "#{ (i + 1).to_s.ljust(11) }#{ student.name.ljust(25) }" + "ID: #{student.student_number}".ljust(25) + "(#{ student.cohort } cohort)"
     }
   end
   
   def print_footer
+    puts "------------------------------------------------------------------------------"
     puts @students.count > 1 ?
     "Overall, we have #{ @students.count } great students" : 
     "We only have #{ @students.count } student."
+    puts " "
+    puts " "
   end
 
   def roster
@@ -128,9 +134,12 @@ class Cohort
   
     # putses result to console
     puts "Students filtered by initial '#{ initial }'"
-    puts "-------------"
+    puts "---------------------------------------------------"
     puts filtered_list
+    puts "---------------------------------------------------"
     puts "Total Students: #{ filtered_list.count }"
+    puts " "
+    puts " "
   end
   
   def by_length(length)
@@ -143,10 +152,14 @@ class Cohort
     }
   
     # putses result to console
-    puts "Students filed under names with no more than #{ length } characters"
-    puts "-------------"
+    puts "Students filed under names with no more than:"
+    puts "#{ length } characters"
+    puts "---------------------------------------------------"
     puts filtered_list
+    puts "---------------------------------------------------"
     puts "Total Students: #{ filtered_list.count }"
+    puts " "
+    puts " "
   end
 end
 
@@ -179,7 +192,7 @@ class Student
   end
 
   def quick_facts
-    puts "-------------"
+    puts "---------------------------------------------------"
     puts "Student #{ @student_number } (#{ @cohort.capitalize })"
     puts "Name: #{ @name }"
     puts "Age: #{ @age }"
@@ -187,16 +200,14 @@ class Student
     puts "Height: #{ @height }"
     puts "Country of Birth: #{ @country_of_birth }"
     puts "Disabled Status: #{ @is_disabled }"
-    puts "-------------"
+    puts "---------------------------------------------------"
   end
 end
-
-#  current methods
 
 
 villains_november = Cohort.new("November")
 sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,"})
-villains_november.add_student(sam) # testing whether I can add to students from outside
+villains_november.add_student(sam)
 villains_november.roster
 students = villains_november.input_students
 puts " "
