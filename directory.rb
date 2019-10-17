@@ -54,24 +54,34 @@ def input_students
   students
 end
 
-def filter_first_initial(initial, students)
+def no_prefix(students)
   prefixes = ["The", "Mr", "Master", "Mrs", "Ms", "Miss", "Mx", "Dr.", "Sir", 
               "Madam", "Lt.", "Sgt.", "..."]
   
-  split_names = [] #  splits each name into a sub-array of words
-students.each { |student| split_names << student[:name].split(' ') }
+  #  splits each name into a sub-array of words
+  split_names = [] 
+  students.each { |student| split_names << student[:name].split(' ') }
 
+  #  takes off first word in name if it's in the list of prefixes (& to_s)
   removed_prefixes = split_names.map { |student|
     student.shift if student.length > 1 && prefixes.include?(student[0])
     student.join(' ')
-  } #  takes off first word in name if it's in the list of prefixes (& to_s)
+  }
+
+  removed_prefixes
+end
+
+def filter_first_initial(initial, students)
+
+  natural_names = no_prefix(students)
 
   #  filters natural names by first initial, then picks corresponding entry from original array
   filtered_list = []
-  removed_prefixes.each.with_index { |student, i| 
+  natural_names.each.with_index { |student, i| 
     filtered_list << students[i][:name] if student.chr == initial 
   }
 
+  # putses result to console
   puts "Students filtered by initial '#{initial}'"
   puts "-------------"
   puts filtered_list
