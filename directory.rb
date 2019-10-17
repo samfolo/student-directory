@@ -26,7 +26,7 @@ class Cohort
 
   def input_students
     puts "Please enter the first name -- (type 'abort' to exit)"
-    puts "----------------------------------------------------------------------------------------------"
+    puts "-" * 53
     #  get the first name
     name = gets.chomp
     return if name == "abort"
@@ -52,7 +52,7 @@ class Cohort
       puts "#{ @students.count } students added.  Last entry:".center(51)
       new_student.quick_facts
       puts "Please enter another name -- (press 'return' to exit)"
-      puts "----------------------------------------------------------------------------------------------"
+      puts "-" * 53
       # get another name from the user
       name = gets.chomp
     end
@@ -82,10 +82,10 @@ class Cohort
   end
 
   def print_header
-    puts "----------------------------------------------------------------------------------------------"
-    puts "|||||||||||||||||||||||        The Students of Villains Academy        |||||||||||||||||||||||"
-    puts "----------------------------------------------------------------------------------------------"
-    puts "----------------------------------------------------------------------------------------------"
+    puts "-" * 94
+    print "|" * 23, " " * 8, "The Students of Villains Academy", " " * 8, "|" * 23, "\n"
+    puts "-" * 94
+    puts "-" * 94
   end
   
   def print_body
@@ -95,7 +95,7 @@ class Cohort
   end
   
   def print_footer
-    puts "----------------------------------------------------------------------------------------------"
+    puts "-" * 94
     puts @students.count > 1 ?
     "Overall, we have #{ @students.count } great students" : 
     "We only have #{ @students.count } student."
@@ -137,9 +137,9 @@ class Cohort
   
     # putses result to console
     puts "Students filtered by initial '#{ initial }'"
-    puts "----------------------------------------------------------------------------------------------"
+    puts "-" * 53
     puts filtered_list
-    puts "----------------------------------------------------------------------------------------------"
+    puts "-" * 53
     puts "Total Students: #{ filtered_list.count }"
     puts " "
     puts " "
@@ -157,9 +157,9 @@ class Cohort
     # putses result to console
     puts "Students filed under names with no more than:"
     puts "#{ length } characters"
-    puts "----------------------------------------------------------------------------------------------"
+    puts "-" * 53
     puts filtered_list
-    puts "----------------------------------------------------------------------------------------------"
+    puts "-" * 53
     puts "Total Students: #{ filtered_list.count }"
     puts " "
     puts " "
@@ -195,7 +195,7 @@ class Student
   end
 
   def quick_facts
-    puts "----------------------------------------------------------------------------------------------"
+    puts "-" * 53
     puts "Student #{ @student_number } (#{ @cohort.capitalize })"
     puts "Name: #{ @name }"
     puts "Age: #{ @age }"
@@ -203,7 +203,7 @@ class Student
     puts "Height: #{ @height }"
     puts "Country of Birth: #{ @country_of_birth }"
     puts "Disabled Status: #{ @is_disabled }"
-    puts "----------------------------------------------------------------------------------------------"
+    puts "-" * 53
   end
 end
 
@@ -235,6 +235,6 @@ students = villains_november.input_students
 puts " "
 villains_november.roster
 puts " "
-villains_november.by_initial("S")
+villains_november.by_initial("W")
 puts " "
-villains_november.by_length(6)
+villains_november.by_length(10)
