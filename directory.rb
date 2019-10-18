@@ -8,7 +8,24 @@ module Formatting
     }.join(' ')
   end
 
-  private 
+  private
+
+  def no_prefix
+    prefixes = ["The", "Mr", "Master", "Mrs", "Ms", "Miss", "Mx", "Dr.", "Nurse",
+                "Sir", "Madam", "Lt.", "Sgt.", "Darth", "..."]
+    
+    #  splits each name into a sub-array of words
+    split_names = [] 
+    @students.each { |student| split_names << student.name.split(' ') }
+  
+    #  takes off first word in name if it's in the list of prefixes (& to_s)
+    removed_prefixes = split_names.map { |student|
+      student.shift if student.length > 1 && prefixes.include?(student[0])
+      student.join(' ')
+    }
+  
+    removed_prefixes
+  end
   
   def long_bar
     puts "-" * 94
@@ -23,6 +40,12 @@ module Formatting
       puts "RESTARTING FORM".center(53)
       puts "<" * 53
       short_bar
+  end
+
+  def edit_mode(student)
+    puts "+" * 53
+    puts "EDITING (#{student.name})".center(53)
+    puts "+" * 53
   end
 
   def goodbye
@@ -52,6 +75,75 @@ module Validation
     "Sudan", "Suriname", "Swaziland", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor L'Este", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia",
     "Turkey", "Turkmenistan", "Turks and Caicos", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "United States Minor Outlying Islands", "Uruguay",
     "Uzbekistan", "Venezuela", "Vietnam", "Virgin Islands (US)", "Wales", "Yemen", "Zambia", "Zimbabwe"].map { |country| country.downcase.to_sym }
+  end
+
+  private
+
+  def validate_age(student, age)
+    until (5..130).to_a.include?(age.to_i)
+      short_bar
+      puts "Invalid entry"
+      puts "Please enter #{ student.name }'s age"
+      puts "(Applicants must be at least 5 and 130 years of age)"
+      print "#{ student.name }'s age: "
+      age = gets.chomp
+    end
+    age
+  end
+
+  def validate_gender(student, gender)
+    until ["M", "F", "NB", "O"].include?(gender)
+      #  (back_arrows; input_student; break) if student.gender.upcase == 'R'
+      short_bar
+      puts "Invalid entry"
+      puts "Please choose  #{ student.name }'s gender"
+      puts "(M) Male / (F) Female / (NB) Non-Binary / (O) Other / Prefer not to say"
+      print "#{ student.name }'s gender: "
+      gender = gets.chomp.upcase
+    end
+    gender
+  end
+
+  def validate_height(student, height)
+    until height.to_i > 0 && height.to_i < 300
+      #  (back_arrows; input_student; break) if new_student.height.upcase == 'R'
+      short_bar
+      if height.to_i > 0
+        puts "Due to the events of last year we no longer accept giants to Villains Academy."
+        puts "Please enter #{ student.name }'s height (in centimeters)"
+      else
+        puts "Invalid entry"
+        puts "Please enter #{ student.name }'s height (in centimeters)"
+      end
+      print "#{ student.name }'s height: "
+      height = gets.chomp
+    end
+    height
+  end
+
+  def validate_country_of_birth(student, country_of_birth)
+    until self.countries.include?(country_of_birth.downcase.to_sym)
+      #  (back_arrows; input_student; break) if country_of_birth.upcase == 'R'
+      short_bar
+      puts "Invalid entry"
+      puts "#{ country_of_birth } is not a country"
+      puts "Please enter #{ student.name }'s country of birth"
+      print "#{ student.name }'s country of birth: "
+      country_of_birth = gets.chomp.capitalize_each
+    end
+    country_of_birth
+  end
+
+  def validate_disability_status(student, is_disabled)
+    until ["true", "false"].include?(is_disabled)
+      #  (back_arrows; input_student; break) if new_student.is_disabled.upcase == 'R'
+      short_bar
+      puts "Invalid entry"
+      puts "Please enter #{ student.name }'s disability status ( true / false )"
+      print "#{ student.name }'s disability status: "
+      is_disabled = gets.chomp.downcase
+    end
+    is_disabled
   end
 end
 
@@ -191,16 +283,19 @@ class Cohort
 
     valid = []
 
+    #  seperates valid entries from invalid entries
     entries.each { |entry| 
       @students.each { |student|
         valid.push(student) if student == entry 
       }
     }
 
+    #  deletes target students
     valid.each { |entry| 
       @students.delete_at(@students.find_index(entry))
     }
 
+    #  displays remaining (invalid) entries
     if valid.length != entries.length
     invalid = entries.reject { |entry| valid.include?(entry) }
     puts "invalid Entries: #{invalid.length}"
@@ -208,6 +303,7 @@ class Cohort
     end
   end
 
+  #  moves one or more students to another valid cohort at cohort level
   def move_student(*students, cohort)
     students.each{ |student|
     if cohort.is_a?(Cohort) && student.is_a?(Student)
@@ -217,9 +313,9 @@ class Cohort
       puts "Invalid target Cohort - operation aborted"
     end
     }
-
   end
 
+  #  display all profiles of students in Cohort
   def student_profiles
     @students.each.with_index { |student, i| 
         puts "#{ i+1 })"
@@ -228,27 +324,11 @@ class Cohort
     puts " "
   end
 
+  #  display all students in Cohort
   def roster
     print_header
     print_body
     print_footer
-  end
-
-  def no_prefix
-    prefixes = ["The", "Mr", "Master", "Mrs", "Ms", "Miss", "Mx", "Dr.", "Nurse",
-                "Sir", "Madam", "Lt.", "Sgt.", "Darth", "..."]
-    
-    #  splits each name into a sub-array of words
-    split_names = [] 
-    @students.each { |student| split_names << student.name.split(' ') }
-  
-    #  takes off first word in name if it's in the list of prefixes (& to_s)
-    removed_prefixes = split_names.map { |student|
-      student.shift if student.length > 1 && prefixes.include?(student[0])
-      student.join(' ')
-    }
-  
-    removed_prefixes
   end
 
   def by_initial(initial)
@@ -322,7 +402,7 @@ class Cohort
 
   private
 
-  #  call a specific data function
+  #  call a specific data function (currently unused)
   def option(ord, new_student)
     inputs = [
       input_student, enter_age(new_student),
@@ -330,7 +410,7 @@ class Cohort
       enter_country_of_birth(new_student), enter_disability_status(new_student)
     ]
 
-    inputs[ord - 1]
+    inputs[ord]
   end
 
   def enter_age(new_student)
@@ -411,14 +491,14 @@ class Cohort
     puts "Please enter #{ new_student.name }'s disability status ( true / false )"
     puts "(type 'R' to restart student entry)"
     print "#{ new_student.name }'s disability status: "
-    new_student.is_disabled = gets.chomp
+    new_student.is_disabled = gets.chomp.downcase
     until ["true", "false"].include?(new_student.is_disabled)
       (back_arrows; input_student; break) if new_student.is_disabled.upcase == 'R'
       short_bar
       puts "Invalid entry"
       puts "Please enter #{ new_student.name }'s disability status ( true / false )"
       print "#{ new_student.name }'s disability status: "
-      new_student.is_disabled = gets.chomp
+      new_student.is_disabled = gets.chomp.downcase
     end
   end
 end
@@ -426,6 +506,7 @@ end
 # each student instance
 class Student
   include Formatting
+  include Validation
   attr_accessor :name, :age, :gender, :height, :country_of_birth,
                 :is_disabled, :cohort, :student_number
 
@@ -465,6 +546,68 @@ class Student
     puts "Country of Birth: #{ @country_of_birth }".ljust(50) + "***"
     puts "Disability Status: #{ @is_disabled }".ljust(50) + "***"
     short_bar
+  end
+
+  #  edit data for student
+  def edit_student
+    #  types of editable data
+    data = {"Name" => self.name, "Age" => self.age, "Gender" => self.gender,
+            "Height" => self.height, "Country of Birth" => self.country_of_birth,
+            "Disability status" => self.is_disabled}
+
+    #  template and options for edit mode
+    edit_mode(self)
+    puts "What would you like to change about this entry?".center(53)
+    puts "   (Enter Number)   ".center(53,"-")
+    short_bar
+    puts ("1)".ljust(12) + "Name".rjust(18)).center(53)
+    puts ("2)".ljust(12) + "Age".rjust(18)).center(53)
+    puts ("3)".ljust(12) + "Gender".rjust(18)).center(53)
+    puts ("4)".ljust(12) + "Height".rjust(18)).center(53)
+    puts ("5)".ljust(12) + "Country of Birth".rjust(18)).center(53)
+    puts ("6)".ljust(12) + "Disability Status".rjust(18)).center(53)
+    short_bar
+    number = gets.chomp
+
+    #  choose an option (or abort)
+    until (1..6).to_a.include?(number.to_i) || number.downcase == 'abort'
+      puts "Invalid entry"
+      puts "Enter new number (or type 'abort' to exit)"
+      number = gets.chomp
+    end
+
+    return if number.downcase == 'abort'
+
+    #  edit data for choice (using Validation mixin)
+    puts "Editing #{self.name}'s #{data.keys[number.to_i - 1].downcase}"
+    case number
+    when "1"
+      print "Actual name: "
+      entry = gets.chomp
+      data[number] = entry
+    when "2"
+      print "#{ self.name }'s actual age: "
+      new_age = gets.chomp
+      self.age = validate_age(self, new_age)
+    when "3"
+      print "#{ self.name }'s actual gender: "
+      new_gender = gets.chomp
+      self.gender = validate_gender(self, new_gender)
+    when "4"
+      print "#{ self.name }'s actual height: "
+      new_height = gets.chomp
+      self.height = validate_height(self, new_height)
+    when "5"
+      print "#{ self.name }'s actual country of birth: "
+      new_country_of_birth = gets.chomp
+      self.country_of_birth = validate_country_of_birth(self, new_country_of_birth)
+    when "6"
+      print "#{ self.name }'s actual disability status: "
+      new_is_disabled = gets.chomp
+      self.is_disabled = validate_is_disabled(self, new_is_disabled)
+    end
+    puts "Done.  #{ self.name}'s modified profile:"
+    self.quick_facts
   end
 end
 
@@ -532,3 +675,7 @@ villains_academy.all_cohorts
 
 va_november.move_student(sam, va_december)
 villains_academy.all_cohorts
+
+#  testing edit student
+
+sam.edit_student
