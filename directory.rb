@@ -18,6 +18,13 @@ module Formatting
     puts "-" * 53
   end
 
+  def back_arrows
+      puts "<" * 53
+      puts "RESTARTING FORM".center(53)
+      puts "<" * 53
+      short_bar
+  end
+
   def goodbye
     puts "-------------".center(51)
     puts "Goodbye".center(51)
@@ -47,6 +54,7 @@ module Validation
     "Uzbekistan", "Venezuela", "Vietnam", "Virgin Islands (US)", "Wales", "Yemen", "Zambia", "Zimbabwe"].map { |country| country.downcase.to_sym }
   end
 end
+
 #  current classes
 
 class String
@@ -143,12 +151,12 @@ class Cohort
       new_student = Student.new(name)
       new_student.cohort = @month
       
-      #  get rest of the data for the student
-        enter_age(new_student)
-        enter_gender(new_student)
-        enter_height(new_student)
-        enter_country_of_birth(new_student)
-        enter_disability_status(new_student)
+      #  get rest of the data for the student from private methods
+      enter_age(new_student)
+      enter_gender(new_student)
+      enter_height(new_student)
+      enter_country_of_birth(new_student)
+      enter_disability_status(new_student)
       
       #  add the student hash to the array
       @students << new_student
@@ -176,7 +184,7 @@ class Cohort
       (entry.cohort = @month; @students.push(entry)) if entry.is_a?(Student)
     }
   end
-  
+
   def student_profiles
     @students.each.with_index { |student, i| 
         puts "#{ i+1 })"
@@ -279,25 +287,44 @@ class Cohort
 
   private
 
+  #  call a specific data function
+  def option(ord, new_student)
+    inputs = [
+      input_student, enter_age(new_student),
+      enter_gender(new_student), enter_height(new_student),
+      enter_country_of_birth(new_student), enter_disability_status(new_student)
+    ]
+
+    inputs[ord - 1]
+  end
+
   def enter_age(new_student)
+    short_bar
     puts "Please enter #{ new_student.name }'s age"
     puts "(Applicants must be at least 5 and at most 130 years of age)"
+    puts "(type 'R' to restart student entry)"
     print "#{ new_student.name }'s age: "
-    new_student.age = gets.chomp.to_i
+    new_student.age = gets.chomp
     until (5..130).to_a.include?(new_student.age.to_i)
+      (back_arrows; input_student; break) if new_student.age.upcase == 'R'
+      short_bar
       puts "Invalid entry"
       puts "Please enter #{ new_student.name }'s age"
       puts "(Applicants must be at least 5 and 130 years of age)"
       print "#{ new_student.name }'s age: "
-      new_student.age = gets.chomp.to_i
+      new_student.age = gets.chomp
     end
   end
 
   def enter_gender(new_student)
+    short_bar
     puts "Please enter #{ new_student.name }'s gender ( M / F / NB / O )"
+    puts "(type 'R' to restart student entry)"
     print "#{ new_student.name }'s gender: "
     new_student.gender = gets.chomp.upcase
     until ["M", "F", "NB", "O"].include?(new_student.gender)
+      (back_arrows; input_student; break) if new_student.gender.upcase == 'R'
+      short_bar
       puts "Invalid entry"
       puts "Please choose  #{ new_student.name }'s gender"
       puts "(M) Male / (F) Female / (NB) Non-Binary / (O) Other / Prefer not to say"
@@ -307,10 +334,14 @@ class Cohort
   end
 
   def enter_height(new_student)
+    short_bar
     puts "Please enter #{ new_student.name }'s height (in centimeters)"
+    puts "(type 'R' to restart student entry)"
     print "#{ new_student.name }'s height: "
     new_student.height = gets.chomp
     until new_student.height.to_i > 0 && new_student.height.to_i < 300
+      (back_arrows; input_student; break) if new_student.height.upcase == 'R'
+      short_bar
       if new_student.height.to_i > 0
         puts "Due to the events of last year we no longer accept giants to Villains Academy."
         puts "Please enter #{ new_student.name }'s height (in centimeters)"
@@ -324,10 +355,14 @@ class Cohort
   end
 
   def enter_country_of_birth(new_student)
+    short_bar
     puts "Please enter #{ new_student.name }'s country of birth"
+    puts "(type 'R' to restart student entry)"
     print "#{ new_student.name }'s country of birth: "
     new_student.country_of_birth = gets.chomp.capitalize_each
     until self.countries.include?(new_student.country_of_birth.downcase.to_sym)
+      (back_arrows; input_student; break) if new_student.country_of_birth.upcase == 'R'
+      short_bar
       puts "Invalid entry"
       puts "#{ new_student.country_of_birth } is not a country"
       puts "Please enter #{ new_student.name }'s country of birth"
@@ -337,10 +372,14 @@ class Cohort
   end
 
   def enter_disability_status(new_student)
+    short_bar
     puts "Please enter #{ new_student.name }'s disability status ( true / false )"
+    puts "(type 'R' to restart student entry)"
     print "#{ new_student.name }'s disability status: "
     new_student.is_disabled = gets.chomp
     until ["true", "false"].include?(new_student.is_disabled)
+      (back_arrows; input_student; break) if new_student.is_disabled.upcase == 'R'
+      short_bar
       puts "Invalid entry"
       puts "Please enter #{ new_student.name }'s disability status ( true / false )"
       print "#{ new_student.name }'s disability status: "
@@ -349,7 +388,7 @@ class Cohort
   end
 end
 
-# each individual member as a class
+# each student instance
 class Student
   include Formatting
   attr_accessor :name, :age, :gender, :height, :country_of_birth,
