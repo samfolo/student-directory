@@ -131,8 +131,8 @@ class Cohort
     puts "Entering new names for the #{ @month } cohort"
     puts "Please enter the first name -- (type 'abort' to exit)"
     short_bar
-    Print "Name: "
-    
+    print "Name: "
+
     #  get the first name
     name = gets.chomp.capitalize_each
     name = "" if name == "Abort"
@@ -144,69 +144,11 @@ class Cohort
       new_student.cohort = @month
       
       #  get rest of the data for the student
-      #  enter age:
-      puts "Please enter #{ new_student.name }'s age"
-      puts "(Applicants must be at least 5 and at most 130 years of age)"
-      print "#{ new_student.name }'s age: "
-      new_student.age = gets.chomp.to_i
-      until (5..130).to_a.include?(new_student.age.to_i)
-        puts "Invalid entry"
-        puts "Please enter #{ new_student.name }'s age"
-        puts "(Applicants must be at least 5 and 130 years of age)"
-        print "#{ new_student.name }'s age: "
-        new_student.age = gets.chomp.to_i
-      end
-
-      #  enter gender:
-      puts "Please enter #{ new_student.name }'s gender ( M / F / NB / O )"
-      print "#{ new_student.name }'s gender: "
-      new_student.gender = gets.chomp.upcase
-      until ["M", "F", "NB", "O"].include?(new_student.gender)
-        puts "Invalid entry"
-        puts "Please choose  #{ new_student.name }'s gender"
-        puts "(M) Male / (F) Female / (NB) Non-Binary / (O) Other / Prefer not to say"
-        print "#{ new_student.name }'s gender: "
-        new_student.gender = gets.chomp.upcase
-      end
-
-      #  enter height
-      puts "Please enter #{ new_student.name }'s height (in centimeters)"
-      print "#{ new_student.name }'s height: "
-      new_student.height = gets.chomp
-      until new_student.height.to_i > 0 && new_student.height.to_i < 300
-        if new_student.height.to_i > 0
-          puts "Due to the events of last year we no longer accept giants to Villains Academy."
-          puts "Please enter #{ new_student.name }'s height (in centimeters)"
-        else
-          puts "Invalid entry"
-          puts "Please enter #{ new_student.name }'s height (in centimeters)"
-        end
-        print "#{ new_student.name }'s height: "
-        new_student.height = gets.chomp
-      end
-
-      # enter country of birth
-      puts "Please enter #{ new_student.name }'s country of birth"
-      print "#{ new_student.name }'s country of birth: "
-      new_student.country_of_birth = gets.chomp.capitalize_each
-      until self.countries.include?(new_student.country_of_birth.downcase.to_sym)
-        puts "Invalid entry"
-        puts "#{ new_student.country_of_birth } is not a country"
-        puts "Please enter #{ new_student.name }'s country of birth"
-        print "#{ new_student.name }'s country of birth: "
-        new_student.country_of_birth = gets.chomp.capitalize_each
-      end
-
-      # enter disability status
-      puts "Please enter #{ new_student.name }'s disability status ( true / false )"
-      print "#{ new_student.name }'s disability status: "
-      new_student.is_disabled = gets.chomp
-      until ["true", "false"].include?(new_student.is_disabled)
-        puts "Invalid entry"
-        puts "Please enter #{ new_student.name }'s disability status ( true / false )"
-        print "#{ new_student.name }'s disability status: "
-        new_student.is_disabled = gets.chomp
-      end
+        enter_age(new_student)
+        enter_gender(new_student)
+        enter_height(new_student)
+        enter_country_of_birth(new_student)
+        enter_disability_status(new_student)
       
       #  add the student hash to the array
       @students << new_student
@@ -222,7 +164,7 @@ class Cohort
     end
 
       #  format results upon completion
-      goodbye
+      goodbye  #  (Formatting mixin)
       puts "There are now #{ @students.count } students in the #{@month} cohort:"
       puts " "
       self.student_profiles
@@ -307,8 +249,6 @@ class Cohort
     puts " "
   end
 
-  # would use private - but need to acess parts of table in Academy object
-
   #  header of table
   def print_header
     long_bar
@@ -335,6 +275,77 @@ class Cohort
     "This cohort only has #{ @students.count } student."
     puts " "
     puts " "
+  end
+
+  private
+
+  def enter_age(new_student)
+    puts "Please enter #{ new_student.name }'s age"
+    puts "(Applicants must be at least 5 and at most 130 years of age)"
+    print "#{ new_student.name }'s age: "
+    new_student.age = gets.chomp.to_i
+    until (5..130).to_a.include?(new_student.age.to_i)
+      puts "Invalid entry"
+      puts "Please enter #{ new_student.name }'s age"
+      puts "(Applicants must be at least 5 and 130 years of age)"
+      print "#{ new_student.name }'s age: "
+      new_student.age = gets.chomp.to_i
+    end
+  end
+
+  def enter_gender(new_student)
+    puts "Please enter #{ new_student.name }'s gender ( M / F / NB / O )"
+    print "#{ new_student.name }'s gender: "
+    new_student.gender = gets.chomp.upcase
+    until ["M", "F", "NB", "O"].include?(new_student.gender)
+      puts "Invalid entry"
+      puts "Please choose  #{ new_student.name }'s gender"
+      puts "(M) Male / (F) Female / (NB) Non-Binary / (O) Other / Prefer not to say"
+      print "#{ new_student.name }'s gender: "
+      new_student.gender = gets.chomp.upcase
+    end
+  end
+
+  def enter_height(new_student)
+    puts "Please enter #{ new_student.name }'s height (in centimeters)"
+    print "#{ new_student.name }'s height: "
+    new_student.height = gets.chomp
+    until new_student.height.to_i > 0 && new_student.height.to_i < 300
+      if new_student.height.to_i > 0
+        puts "Due to the events of last year we no longer accept giants to Villains Academy."
+        puts "Please enter #{ new_student.name }'s height (in centimeters)"
+      else
+        puts "Invalid entry"
+        puts "Please enter #{ new_student.name }'s height (in centimeters)"
+      end
+      print "#{ new_student.name }'s height: "
+      new_student.height = gets.chomp
+    end
+  end
+
+  def enter_country_of_birth(new_student)
+    puts "Please enter #{ new_student.name }'s country of birth"
+    print "#{ new_student.name }'s country of birth: "
+    new_student.country_of_birth = gets.chomp.capitalize_each
+    until self.countries.include?(new_student.country_of_birth.downcase.to_sym)
+      puts "Invalid entry"
+      puts "#{ new_student.country_of_birth } is not a country"
+      puts "Please enter #{ new_student.name }'s country of birth"
+      print "#{ new_student.name }'s country of birth: "
+      new_student.country_of_birth = gets.chomp.capitalize_each
+    end
+  end
+
+  def enter_disability_status(new_student)
+    puts "Please enter #{ new_student.name }'s disability status ( true / false )"
+    print "#{ new_student.name }'s disability status: "
+    new_student.is_disabled = gets.chomp
+    until ["true", "false"].include?(new_student.is_disabled)
+      puts "Invalid entry"
+      puts "Please enter #{ new_student.name }'s disability status ( true / false )"
+      print "#{ new_student.name }'s disability status: "
+      new_student.is_disabled = gets.chomp
+    end
   end
 end
 
