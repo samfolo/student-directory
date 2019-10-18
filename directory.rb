@@ -4,6 +4,16 @@ module Formatting
   def capitalize_each
     self.split.map(&:capitalize).join(' ')
   end
+
+  private 
+  
+  def long_bar
+    puts "-" * 94
+  end
+
+  def short_bar
+    puts "-" * 53
+  end
 end
 
 #  current classes
@@ -14,7 +24,7 @@ end
 
 #  each academy instance
 class Academy
-
+  include Formatting
   attr_reader :name, :cohorts
 
   def initialize(name)
@@ -34,28 +44,36 @@ class Academy
     total
   end
 
+  def all_cohorts
+    print_header
+    print_body
+    print_footer
+  end
+
+  private
+
   #  header of table
   def print_header
-    puts "-" * 94
+    long_bar
     print "|" * 23, "The Students of Villains Academy".center(48), "|" * 23, "\n"
     print "|" * 23, "==== All Cohorts ====".center(48), "|" * 23, "\n"
-    puts "-" * 94
+    long_bar
   end
 
   #  body of table
   def print_body
     @cohorts.each { |cohort| 
-      puts "-" * 94
+      long_bar
       print "|" * 23, "-- #{ cohort.month } Cohort --".center(48), "|" * 23, "\n"
-      puts "-" * 94
+      long_bar
       cohort.print_body
-      puts "-" * 94
+      long_bar
     }
   end
 
   #  footer of table
   def print_footer
-    puts "-" * 94
+    long_bar
     puts total_students != 1 ?
     "Overall, the Academy has #{ total_students } great students over #{ @cohorts.count } cohorts" : 
     "The Academy only has #{ total_students } student."
@@ -63,16 +81,11 @@ class Academy
     puts " "
     puts " "
   end
-
-  def all_cohorts
-    print_header
-    print_body
-    print_footer
-  end
 end
 
 # each cohort instance
 class Cohort
+  include Formatting
   attr_accessor :academy, :month, :students
 
   def initialize(month)
@@ -85,7 +98,7 @@ class Cohort
   def input_student
     puts "Entering new names for the #{ @month } cohort"
     puts "Please enter the first name -- (type 'abort' to exit)"
-    puts "-" * 53
+    short_bar
 
     #  get the first name
     name = gets.chomp.capitalize_each
@@ -116,7 +129,8 @@ class Cohort
       puts "Student added. New total: #{ @students.count }.  Last entry:".center(53)
       new_student.quick_facts
       puts "Please enter another name -- (press 'return' to exit)"
-      puts "-" * 53
+      short_bar
+
       # get another name from the user
       name = gets.chomp
     end
@@ -144,34 +158,6 @@ class Cohort
         puts "#{ i+1 })"
         student.quick_facts 
     }
-    puts " "
-  end
-
-  #  header of table
-  def print_header
-    puts "-" * 94
-    print "|" * 23, "The Students of Villains Academy".center(48), "|" * 23, "\n"
-    print "|" * 23, "-- #{ @month } Cohort --".center(48), "|" * 23, "\n"
-    puts "-" * 94
-    puts "-" * 94
-  end
-
-  #  body of table
-  def print_body
-    @students.each.with_index { |student, i| 
-      puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + 
-      "ID: #{ student.student_number }".ljust(24) +
-      "(#{ student.cohort } cohort)".rjust(18)
-    }
-  end
-
-  #  footer of table
-  def print_footer
-    puts "-" * 94
-    puts @students.count != 1 ?
-    "Overall, this cohort has #{ @students.count } great students" : 
-    "This cohort only has #{ @students.count } student."
-    puts " "
     puts " "
   end
 
@@ -210,14 +196,13 @@ class Cohort
   
     # putses result to console
     puts "Students filtered by initial '#{ initial }' (excluding prefixes)"
-    puts "-" * 53
+    short_bar
     puts filtered_list
-    puts "-" * 53
+    short_bar
     puts "Total Students: #{ filtered_list.count }"
     puts " "
     puts " "
   end
-  
   
   def by_length(length)
     natural_names = no_prefix
@@ -232,10 +217,40 @@ class Cohort
     # putses result to console
     puts "Students filed under names with no more than:"
     puts "#{ length } characters (excluding prefixes)"
-    puts "-" * 53
+    short_bar
     puts filtered_list
-    puts "-" * 53
+    short_bar
     puts "Total Students: #{ filtered_list.count }"
+    puts " "
+    puts " "
+  end
+
+  # would use private - but need to acess parts of table in Academy object
+
+  #  header of table
+  def print_header
+    long_bar
+    print "|" * 23, "The Students of Villains Academy".center(48), "|" * 23, "\n"
+    print "|" * 23, "-- #{ @month } Cohort --".center(48), "|" * 23, "\n"
+    long_bar
+    long_bar
+  end
+
+  #  body of table
+  def print_body
+    @students.each.with_index { |student, i| 
+      puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + 
+      "ID: #{ student.student_number }".ljust(24) +
+      "(#{ student.cohort } cohort)".rjust(18)
+    }
+  end
+
+  #  footer of table
+  def print_footer
+    long_bar
+    puts @students.count != 1 ?
+    "Overall, this cohort has #{ @students.count } great students" : 
+    "This cohort only has #{ @students.count } student."
     puts " "
     puts " "
   end
@@ -243,6 +258,7 @@ end
 
 # each individual member as a class
 class Student
+  include Formatting
   attr_accessor :name, :age, :gender, :height, :country_of_birth,
                 :is_disabled, :cohort, :student_number
 
@@ -273,7 +289,7 @@ class Student
 
   #  display all stats for a Student
   def quick_facts
-    puts "-" * 53
+    short_bar
     puts "Student #{ @student_number } (#{ @cohort })".ljust(50) + "***"
     puts "Name: #{ @name }".ljust(50) + "***"
     puts "Age: #{ @age }".ljust(50) + "***"
@@ -281,7 +297,7 @@ class Student
     puts "Height: #{ @height }".ljust(50) + "***"
     puts "Country of Birth: #{ @country_of_birth }".ljust(50) + "***"
     puts "Disabled Status: #{ @is_disabled }".ljust(50) + "***"
-    puts "-" * 53
+    short_bar
   end
 end
 
