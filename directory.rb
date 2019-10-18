@@ -48,6 +48,10 @@ module Formatting
     puts "+" * 53
   end
 
+  def restart?
+    puts "(type 'R' to restart student entry)"
+  end
+
   def goodbye
     puts "-------------".center(51)
     puts "Goodbye".center(51)
@@ -80,11 +84,12 @@ module Validation
   private
 
   def validate_age(student, age)
-    until (5..130).to_a.include?(age.to_i)
+    until (5..130).to_a.include?(age.to_f.round) || age.upcase == 'R'
       short_bar
       puts "Invalid entry"
       puts "Please enter #{ student.name }'s age"
       puts "(Applicants must be at least 5 and 130 years of age)"
+      restart?
       print "#{ student.name }'s age: "
       age = gets.chomp
     end
@@ -92,12 +97,12 @@ module Validation
   end
 
   def validate_gender(student, gender)
-    until ["M", "F", "NB", "O"].include?(gender)
-      #  (back_arrows; input_student; break) if student.gender.upcase == 'R'
+    until ["M", "F", "NB", "O"].include?(gender) || gender.upcase == 'R'
       short_bar
       puts "Invalid entry"
       puts "Please choose  #{ student.name }'s gender"
       puts "(M) Male / (F) Female / (NB) Non-Binary / (O) Other / Prefer not to say"
+      restart?
       print "#{ student.name }'s gender: "
       gender = gets.chomp.upcase
     end
@@ -105,8 +110,7 @@ module Validation
   end
 
   def validate_height(student, height)
-    until height.to_i > 0 && height.to_i < 300
-      #  (back_arrows; input_student; break) if new_student.height.upcase == 'R'
+    until height.to_i > 0 && height.to_i < 300 || height.upcase == 'R'
       short_bar
       if height.to_i > 0
         puts "Due to the events of last year we no longer accept giants to Villains Academy."
@@ -115,6 +119,7 @@ module Validation
         puts "Invalid entry"
         puts "Please enter #{ student.name }'s height (in centimeters)"
       end
+      restart?
       print "#{ student.name }'s height: "
       height = gets.chomp
     end
@@ -122,12 +127,12 @@ module Validation
   end
 
   def validate_country_of_birth(student, country_of_birth)
-    until self.countries.include?(country_of_birth.downcase.to_sym)
-      #  (back_arrows; input_student; break) if country_of_birth.upcase == 'R'
+    until self.countries.include?(country_of_birth.downcase.to_sym) || country_of_birth.upcase == 'R'
       short_bar
       puts "Invalid entry"
       puts "#{ country_of_birth } is not a country"
       puts "Please enter #{ student.name }'s country of birth"
+      restart?
       print "#{ student.name }'s country of birth: "
       country_of_birth = gets.chomp.capitalize_each
     end
@@ -135,11 +140,11 @@ module Validation
   end
 
   def validate_disability_status(student, is_disabled)
-    until ["true", "false"].include?(is_disabled)
-      #  (back_arrows; input_student; break) if new_student.is_disabled.upcase == 'R'
+    until ["true", "false"].include?(is_disabled) || is_disabled.upcase == 'R'
       short_bar
       puts "Invalid entry"
       puts "Please enter #{ student.name }'s disability status ( true / false )"
+      restart?
       print "#{ student.name }'s disability status: "
       is_disabled = gets.chomp.downcase
     end
@@ -229,7 +234,7 @@ class Cohort
   #  add one or multiple students from CLI
   def input_student
     puts "Entering new names for the #{ @month } cohort"
-    puts "Please enter the first name -- (type 'abort' to exit)"
+    puts "Please enter the first name  (press 'return' to exit)"
     short_bar
     print "Name: "
 
@@ -417,89 +422,52 @@ class Cohort
     short_bar
     puts "Please enter #{ new_student.name }'s age"
     puts "(Applicants must be at least 5 and at most 130 years of age)"
-    puts "(type 'R' to restart student entry)"
+    restart?
     print "#{ new_student.name }'s age: "
-    new_student.age = gets.chomp
-    until (5..130).to_a.include?(new_student.age.to_i)
-      (back_arrows; input_student; break) if new_student.age.upcase == 'R'
-      short_bar
-      puts "Invalid entry"
-      puts "Please enter #{ new_student.name }'s age"
-      puts "(Applicants must be at least 5 and 130 years of age)"
-      print "#{ new_student.name }'s age: "
-      new_student.age = gets.chomp
-    end
+    new_age = gets.chomp
+    new_student.age = validate_age(new_student, new_age)
+    (back_arrows; input_student) if new_student.age.upcase == 'R'
+    new_student.age = new_student.age.to_f.round  # round stray decimals
   end
 
   def enter_gender(new_student)
     short_bar
     puts "Please enter #{ new_student.name }'s gender ( M / F / NB / O )"
-    puts "(type 'R' to restart student entry)"
+    restart?
     print "#{ new_student.name }'s gender: "
-    new_student.gender = gets.chomp.upcase
-    until ["M", "F", "NB", "O"].include?(new_student.gender)
-      (back_arrows; input_student; break) if new_student.gender.upcase == 'R'
-      short_bar
-      puts "Invalid entry"
-      puts "Please choose  #{ new_student.name }'s gender"
-      puts "(M) Male / (F) Female / (NB) Non-Binary / (O) Other / Prefer not to say"
-      print "#{ new_student.name }'s gender: "
-      new_student.gender = gets.chomp.upcase
-    end
+    new_gender = gets.chomp.upcase
+    new_student.gender = validate_gender(new_student, new_gender)
+    (back_arrows; input_student) if new_student.gender.upcase == 'R'
   end
 
   def enter_height(new_student)
     short_bar
     puts "Please enter #{ new_student.name }'s height (in centimeters)"
-    puts "(type 'R' to restart student entry)"
+    restart?
     print "#{ new_student.name }'s height: "
-    new_student.height = gets.chomp
-    until new_student.height.to_i > 0 && new_student.height.to_i < 300
-      (back_arrows; input_student; break) if new_student.height.upcase == 'R'
-      short_bar
-      if new_student.height.to_i > 0
-        puts "Due to the events of last year we no longer accept giants to Villains Academy."
-        puts "Please enter #{ new_student.name }'s height (in centimeters)"
-      else
-        puts "Invalid entry"
-        puts "Please enter #{ new_student.name }'s height (in centimeters)"
-      end
-      print "#{ new_student.name }'s height: "
-      new_student.height = gets.chomp
-    end
+    new_height = gets.chomp
+    new_student.height = validate_height(new_student, new_height)
+    (back_arrows; input_student) if new_student.height.upcase == 'R'
   end
 
   def enter_country_of_birth(new_student)
     short_bar
     puts "Please enter #{ new_student.name }'s country of birth"
-    puts "(type 'R' to restart student entry)"
+    restart?
     print "#{ new_student.name }'s country of birth: "
-    new_student.country_of_birth = gets.chomp.capitalize_each
-    until self.countries.include?(new_student.country_of_birth.downcase.to_sym)
-      (back_arrows; input_student; break) if new_student.country_of_birth.upcase == 'R'
-      short_bar
-      puts "Invalid entry"
-      puts "#{ new_student.country_of_birth } is not a country"
-      puts "Please enter #{ new_student.name }'s country of birth"
-      print "#{ new_student.name }'s country of birth: "
-      new_student.country_of_birth = gets.chomp.capitalize_each
-    end
+    new_country_of_birth = gets.chomp.capitalize_each
+    new_student.country_of_birth = validate_country_of_birth(new_student, new_country_of_birth)
+    (back_arrows; input_student) if new_student.country_of_birth.upcase == 'R'
   end
 
   def enter_disability_status(new_student)
     short_bar
     puts "Please enter #{ new_student.name }'s disability status ( true / false )"
-    puts "(type 'R' to restart student entry)"
+    restart?
     print "#{ new_student.name }'s disability status: "
-    new_student.is_disabled = gets.chomp.downcase
-    until ["true", "false"].include?(new_student.is_disabled)
-      (back_arrows; input_student; break) if new_student.is_disabled.upcase == 'R'
-      short_bar
-      puts "Invalid entry"
-      puts "Please enter #{ new_student.name }'s disability status ( true / false )"
-      print "#{ new_student.name }'s disability status: "
-      new_student.is_disabled = gets.chomp.downcase
-    end
+    new_disability_status = gets.chomp.downcase
+    new_student.is_disabled = validate_disability_status(new_student, new_disability_status)
+    (back_arrows; input_student) if new_student.is_disabled.upcase == 'R'
   end
 end
 
@@ -631,7 +599,7 @@ villains_academy = Academy.new("Villains Academy")
 #  create "Villains Academy" November Cohort object
 va_november = Cohort.new("November")
 
-#  add all Student objects to "Villains Academy" Cohort object
+#  add some Student objects to "Villains Academy" Cohort object
 va_november.add_student(sam, vader, hannibal, nurse_ratched, 
                         michael_corleone, alex_delarge)
 
@@ -654,7 +622,7 @@ va_december.add_student(wicked_witch, terminator, freddy_krueger,
 
 va_december.roster
 
-#va_december.input_student
+va_december.input_student
 puts " "
 va_december.roster
 puts " "
