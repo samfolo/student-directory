@@ -1,7 +1,20 @@
+#  current modules
+
+module Formatting
+  def capitalize_each
+    self.split.map(&:capitalize).join(' ')
+  end
+end
+
 #  current classes
+
+class String
+  include Formatting
+end
 
 #  each academy instance
 class Academy
+
   attr_reader :name, :cohorts
 
   def initialize(name)
@@ -75,10 +88,8 @@ class Cohort
     puts "-" * 53
 
     #  get the first name
-    name = gets.chomp
-    if name == "abort"
-      name = ""
-    end
+    name = gets.chomp.capitalize_each
+    name = "" if name == "abort"
 
     #  while the name is not empty, repeat this code
     while !name.empty?
@@ -149,8 +160,8 @@ class Cohort
   def print_body
     @students.each.with_index { |student, i| 
       puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + 
-      "ID: #{ student.student_number }".ljust(25) +
-      "(#{ student.cohort } cohort)"
+      "ID: #{ student.student_number }".ljust(24) +
+      "(#{ student.cohort } cohort)".rjust(18)
     }
   end
 
