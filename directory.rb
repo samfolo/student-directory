@@ -25,7 +25,7 @@ class Academy
   def print_header
     puts "-" * 94
     print "|" * 23, "The Students of Villains Academy".center(48), "|" * 23, "\n"
-    print "|" * 23, "=== All Cohorts ===".center(48), "|" * 23, "\n"
+    print "|" * 23, "==== All Cohorts ====".center(48), "|" * 23, "\n"
     puts "-" * 94
   end
 
@@ -70,13 +70,15 @@ class Cohort
 
   #  add one or multiple students from CLI
   def input_student
-    puts "Inputting names for the #{ @month } cohort"
+    puts "Entering new names for the #{ @month } cohort"
     puts "Please enter the first name -- (type 'abort' to exit)"
     puts "-" * 53
 
     #  get the first name
     name = gets.chomp
-    return if name == "abort"
+    if name == "abort"
+      name = ""
+    end
 
     #  while the name is not empty, repeat this code
     while !name.empty?
@@ -109,12 +111,12 @@ class Cohort
     end
 
       #  format results upon completion
-      puts "-------------".center(50)
-      puts "Goodbye".center(50)
-      puts "-------------".center(50)
+      puts "-------------".center(51)
+      puts "Goodbye".center(51)
+      puts "-------------".center(51)
       puts " ".center(50)
       puts " ".center(50)
-      puts "There are now #{ @students.count } students:"
+      puts "There are now #{ @students.count } students in the #{@month} cohort:"
       puts " "
       self.student_profiles
   end
@@ -122,8 +124,7 @@ class Cohort
   #  add one or multiple students to cohort within editor
   def add_student(*entries)
     entries.each { |entry| 
-      entry.cohort = @month
-      @students.push(entry) if entry.is_a?(Student)
+      (entry.cohort = @month; @students.push(entry)) if entry.is_a?(Student)
     }
   end
   
@@ -197,7 +198,7 @@ class Cohort
     }
   
     # putses result to console
-    puts "Students filtered by initial '#{ initial }'"
+    puts "Students filtered by initial '#{ initial }' (excluding prefixes)"
     puts "-" * 53
     puts filtered_list
     puts "-" * 53
@@ -219,7 +220,7 @@ class Cohort
   
     # putses result to console
     puts "Students filed under names with no more than:"
-    puts "#{ length } characters"
+    puts "#{ length } characters (excluding prefixes)"
     puts "-" * 53
     puts filtered_list
     puts "-" * 53
@@ -262,13 +263,13 @@ class Student
   #  display all stats for a Student
   def quick_facts
     puts "-" * 53
-    puts "Student #{ @student_number } (#{ @cohort })"
-    puts "Name: #{ @name }"
-    puts "Age: #{ @age }"
-    puts "Gender: #{ @gender }"
-    puts "Height: #{ @height }"
-    puts "Country of Birth: #{ @country_of_birth }"
-    puts "Disabled Status: #{ @is_disabled }"
+    puts "Student #{ @student_number } (#{ @cohort })".ljust(50) + "***"
+    puts "Name: #{ @name }".ljust(50) + "***"
+    puts "Age: #{ @age }".ljust(50) + "***"
+    puts "Gender: #{ @gender }".ljust(50) + "***"
+    puts "Height: #{ @height }".ljust(50) + "***"
+    puts "Country of Birth: #{ @country_of_birth }".ljust(50) + "***"
+    puts "Disabled Status: #{ @is_disabled }".ljust(50) + "***"
     puts "-" * 53
   end
 end
@@ -287,7 +288,7 @@ joker = Student.new("The Joker")
 joffrey = Student.new("Joffrey Baratheon")
 norman_bates = Student.new("Norman Bates")
 
-#  create "Villains Academy" November Cohort object
+#  create "Villains Academy" Academy object
 villains_academy = Academy.new("Villains Academy")
 
 #  create "Villains Academy" November Cohort object
