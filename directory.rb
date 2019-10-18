@@ -178,14 +178,14 @@ class Cohort
       self.student_profiles
   end
 
-  #  add one or multiple students to cohort within editor
+  #  add one or multiple students to cohort (within editor)
   def add_student(*entries)
     entries.each { |entry| 
       (entry.cohort = @month; @students.push(entry)) if entry.is_a?(Student)
     }
   end
   
-  #  deletes student by ID (as some names may be duplicated)
+  #  delete one or more students from cohort (within editor)
   def delete_student(*entries)
     length_before = @students.length
 
@@ -206,6 +206,18 @@ class Cohort
     puts "invalid Entries: #{invalid.length}"
     invalid.each { |entry| puts "#{entry.name}: #{entry.student_number}" }
     end
+  end
+
+  def move_student(*students, cohort)
+    students.each{ |student|
+    if cohort.is_a?(Cohort) && student.is_a?(Student)
+      cohort.add_student(student)
+      self.delete_student(student)
+    elsif !cohort.is_a?(Cohort)
+      puts "Invalid target Cohort - operation aborted"
+    end
+    }
+
   end
 
   def student_profiles
@@ -512,6 +524,11 @@ villains_academy.all_cohorts
 
 #  testing delete fuction
 
-va_november.delete_student(alex_delarge, sam)
+va_november.delete_student(alex_delarge)
 va_december.delete_student(joffrey, terminator)
+villains_academy.all_cohorts
+
+#  testing student migration
+
+va_november.move_student(sam, va_december)
 villains_academy.all_cohorts
