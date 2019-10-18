@@ -184,6 +184,29 @@ class Cohort
       (entry.cohort = @month; @students.push(entry)) if entry.is_a?(Student)
     }
   end
+  
+  #  deletes student by ID (as some names may be duplicated)
+  def delete_student(*entries)
+    length_before = @students.length
+
+    valid = []
+
+    entries.each { |entry| 
+      @students.each { |student|
+        valid.push(student) if student == entry 
+      }
+    }
+
+    valid.each { |entry| 
+      @students.delete_at(@students.find_index(entry))
+    }
+
+    if valid.length != entries.length
+    invalid = entries.reject { |entry| valid.include?(entry) }
+    puts "invalid Entries: #{invalid.length}"
+    invalid.each { |entry| puts "#{entry.name}: #{entry.student_number}" }
+    end
+  end
 
   def student_profiles
     @students.each.with_index { |student, i| 
@@ -460,7 +483,7 @@ va_november.add_student(sam, vader, hannibal, nurse_ratched,
 #  test methods in CLI
 va_november.roster
 
-va_november.input_student
+#va_november.input_student
 puts " "
 va_november.roster
 puts " "
@@ -476,7 +499,7 @@ va_december.add_student(wicked_witch, terminator, freddy_krueger,
 
 va_december.roster
 
-va_december.input_student
+#va_december.input_student
 puts " "
 va_december.roster
 puts " "
@@ -485,4 +508,10 @@ puts " "
 va_december.by_length(7)
 
 villains_academy.add_cohort(va_november, va_december)
+villains_academy.all_cohorts
+
+#  testing delete fuction
+
+va_november.delete_student(alex_delarge, sam)
+va_december.delete_student(joffrey, terminator)
 villains_academy.all_cohorts
