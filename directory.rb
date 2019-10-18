@@ -10,16 +10,57 @@ class Academy
   end
 
   def add_cohort(*entries)
-    entries.each{ |entry| 
-      entry.academy = @name
-      @cohorts.push(entry) if entry.is_a?(Cohort)
+    entries.each { |entry| 
+      (entry.academy = @name; @cohorts.push(entry)) if entry.is_a?(Cohort)
     }
+  end
+
+  def total_students
+    total = 0
+    @cohorts.each { |cohort| total += cohort.students.length }
+    total
+  end
+
+  #  header of table
+  def print_header
+    puts "-" * 94
+    print "|" * 23, "The Students of Villains Academy".center(48), "|" * 23, "\n"
+    print "|" * 23, "=== All Cohorts ===".center(48), "|" * 23, "\n"
+    puts "-" * 94
+  end
+
+  #  body of table
+  def print_body
+    @cohorts.each { |cohort| 
+      puts "-" * 94
+      print "|" * 23, "-- #{ cohort.month } Cohort --".center(48), "|" * 23, "\n"
+      puts "-" * 94
+      cohort.print_body
+      puts "-" * 94
+    }
+  end
+
+  #  footer of table
+  def print_footer
+    puts "-" * 94
+    puts total_students != 1 ?
+    "Overall, the Academy has #{ total_students } great students over #{ @cohorts.count } cohorts" : 
+    "The Academy only has #{ total_students } student."
+
+    puts " "
+    puts " "
+  end
+
+  def all_cohorts
+    print_header
+    print_body
+    print_footer
   end
 end
 
 # each cohort instance
 class Cohort
-  attr_reader :academy, :month, :students
+  attr_accessor :academy, :month, :students
 
   def initialize(month)
     @academy
@@ -29,7 +70,7 @@ class Cohort
 
   #  add one or multiple students from CLI
   def input_student
-    puts "Inputting names for the #{@month} cohort"
+    puts "Inputting names for the #{ @month } cohort"
     puts "Please enter the first name -- (type 'abort' to exit)"
     puts "-" * 53
 
@@ -80,7 +121,7 @@ class Cohort
 
   #  add one or multiple students to cohort within editor
   def add_student(*entries)
-    entries.each{ |entry| 
+    entries.each { |entry| 
       entry.cohort = @month
       @students.push(entry) if entry.is_a?(Student)
     }
@@ -97,7 +138,8 @@ class Cohort
   #  header of table
   def print_header
     puts "-" * 94
-    print "|" * 23, " " * 8, "The Students of Villains Academy", " " * 8, "|" * 23, "\n"
+    print "|" * 23, "The Students of Villains Academy".center(48), "|" * 23, "\n"
+    print "|" * 23, "-- #{ @month } Cohort --".center(48), "|" * 23, "\n"
     puts "-" * 94
     puts "-" * 94
   end
@@ -106,7 +148,7 @@ class Cohort
   def print_body
     @students.each.with_index { |student, i| 
       puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + 
-      "ID: #{student.student_number}".ljust(25) +
+      "ID: #{ student.student_number }".ljust(25) +
       "(#{ student.cohort } cohort)"
     }
   end
@@ -114,9 +156,9 @@ class Cohort
   #  footer of table
   def print_footer
     puts "-" * 94
-    puts @students.count > 1 ?
-    "Overall, we have #{ @students.count } great students" : 
-    "We only have #{ @students.count } student."
+    puts @students.count != 1 ?
+    "Overall, this cohort has #{ @students.count } great students" : 
+    "This cohort only has #{ @students.count } student."
     puts " "
     puts " "
   end
@@ -282,3 +324,5 @@ va_december.by_initial("J")
 puts " "
 va_december.by_length(7)
 
+villains_academy.add_cohort(va_november, va_december)
+villains_academy.all_cohorts
