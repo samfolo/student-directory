@@ -50,6 +50,12 @@ module Formatting
     puts "+" * 53
   end
 
+  def exit_edit_mode
+    puts "+" * 53
+    puts "EXITING EDIT MODE".center(53)
+    puts "+" * 53
+  end
+
   def restart?
     puts "(type 'R' to restart student entry)"
   end
@@ -88,6 +94,8 @@ module Validation
     "July", "August", "September", "October", "November", "December"].map { |month| month.downcase.to_sym }
   end
 
+  private
+
   #  use Luhn's algorithm to validate 7-digit student IDs
   def luhns_seven(id)
     #  splits ID into digit array
@@ -97,7 +105,7 @@ module Validation
     #  turns all numbers > 9 into single digits by subtracting 9
     single_digits_only = double_every_other.reverse.map { |digit| digit > 9 ? digit - 9 : digit }
     #  returns whether ID is 'valid' (divisible by 10)
-    return sum_over_10 = single_digits_only.reduce(:+) % 10 == 0
+    return single_digits_only.reduce(:+) % 10 == 0
   end
 
   def validate_age(student, age)
@@ -121,7 +129,7 @@ module Validation
       puts "(M) Male / (F) Female / (NB) Non-Binary / (O) Other / Prefer not to say"
       restart?
       print student.gender == "N/A" ? "#{ student.name }'s gender: " : "#{ student.name }'s actual gender: "
-      gender = gets.chomp.upcase
+      gender = gets.chomp.upcase!
     end
     gender
   end
@@ -454,7 +462,6 @@ class Cohort
     new_age = gets.chomp
     #  merge validation and assignment as new student has no data to mutate
     new_student.age = validate_age(new_student, new_age)  #  Validation mixin
-
     #  sets off 'kill form' chain if user enters 'R'
     (back_arrows; new_student.age = false; input_student) if new_student.age.upcase == 'R'
     return if new_student.age == false
@@ -479,6 +486,8 @@ class Cohort
     new_height = gets.chomp
     new_student.height = validate_height(new_student, new_height)
     (back_arrows; new_student.height = false; input_student) if new_student.height.upcase == 'R'
+    return if new_student.height == false
+    new_student.height = new_student.height.to_f.round(2)
   end
 
   def enter_country_of_birth(new_student)
@@ -602,7 +611,7 @@ class Student
       self.age = updated_age.upcase == 'R' ? self.age : updated_age 
     when "3"
       print "#{ self.name }'s actual gender: "
-      new_gender = gets.chomp
+      new_gender = gets.chomp.upcase
       updated_gender = validate_gender(self, new_gender)
       self.gender = updated_gender.upcase == 'R' ? self.gender : updated_gender
     when "4"
@@ -612,7 +621,7 @@ class Student
       self.height = updated_height.upcase == 'R' ? self.height : updated.height
     when "5"
       print "#{ self.name }'s actual country of birth: "
-      new_country_of_birth = gets.chomp
+      new_country_of_birth = gets.chomp.capitalize_each
       updated_country_of_birth = validate_country_of_birth(self, new_country_of_birth)
       self.country_of_birth = updated_country_of_birth.upcase == 'R' ? self.country_of_birth : updated_country_of_birth
     when "6"
@@ -623,6 +632,7 @@ class Student
     end
     puts "Done.  #{ self.name}'s modified profile:"
     self.quick_facts
+    exit_edit_mode
   end
 end
 
@@ -696,4 +706,4 @@ villains_academy.all_cohorts
 
 #  testing edit student
 
-sam.luhns_seven
+sam.edit_student
