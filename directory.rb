@@ -3,7 +3,9 @@
 module Formatting
   def capitalize_each
     self.split.map{ |word|
+      #  deals with words like "l'este" and "d'arte"
       ["l'", "c'", "d'"].include?(word[0..1].downcase) ? (word[0..2].upcase! + word[3..-1].downcase) :
+      #  deals with country abbreviations
       ["(us)", "(usa)", "usa", "(uk)", "uk"].include?(word.downcase) ? word.upcase : word.capitalize
     }.join(' ')
   end
@@ -85,7 +87,18 @@ module Validation
     months = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"].map { |month| month.downcase.to_sym }
   end
-  private
+
+  #  use Luhn's algorithm to validate 7-digit student IDs
+  def luhns_seven(id)
+    #  splits ID into digit array
+    array = id.split('').map(&:to_i)
+    #  doubles every other number in reverse except last (check digit)
+    double_every_other = array.reverse[0..-2].map.with_index { |digit, i| i % 2 == 1 ? digit * 2 : digit } << array[0]
+    #  turns all numbers > 9 into single digits by subtracting 9
+    single_digits_only = double_every_other.reverse.map { |digit| digit > 9 ? digit - 9 : digit }
+    #  returns whether ID is 'valid' (divisible by 10)
+    return sum_over_10 = single_digits_only.reduce(:+) % 10 == 0
+  end
 
   def validate_age(student, age)
     until (5..130).to_a.include?(age.to_f.round) || age.upcase == 'R'
@@ -249,7 +262,7 @@ class Cohort
     #  get the first name
     name = gets.chomp.capitalize_each
 
-    #  while the name is not empty, repeat this code
+    #  unless the name is not empty, repeat this code
     unless name.empty?
       #  create a student
       new_student = Student.new(name)
@@ -283,7 +296,7 @@ class Cohort
     end
 
       #  format results upon completion
-      goodbye  #  (Formatting mixin)
+      goodbye  #  Formatting mixin
       puts "There are now #{ @students.count } students in the #{@month} cohort:"
       puts " "
       self.student_profiles
@@ -318,7 +331,7 @@ class Cohort
     if valid.length != entries.length
     invalid = entries.reject { |entry| valid.include?(entry) }
     puts "invalid Entries: #{invalid.length}"
-    invalid.each { |entry| puts "#{entry.name}: #{entry.student_number}" }
+    invalid.each { |entry| puts "#{entry.name}: #{entry.student_id}" }
     end
   end
 
@@ -351,7 +364,7 @@ class Cohort
   end
 
   def by_initial(initial)
-    natural_names = no_prefix
+    natural_names = no_prefix  #  Formatting mixin
   
     #  filters natural names by first initial, then picks corresponding 
     #  entry from original array
@@ -404,7 +417,7 @@ class Cohort
   def print_body
     @students.each.with_index { |student, i| 
       puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + 
-      "ID: #{ student.student_number }".ljust(24) +
+      "ID: #{ student.student_id }".ljust(24) +
       "(#{ student.cohort } cohort)".rjust(18)
     }
   end
@@ -421,7 +434,7 @@ class Cohort
 
   private
 
-  #  call a specific data function (currently unused)
+  #  call a specific data entry function (currently unused)
   def option(ord, new_student)
     inputs = [
       input_student, enter_age(new_student),
@@ -433,14 +446,16 @@ class Cohort
   end
 
   def enter_age(new_student)
-    
     short_bar
     puts "Please enter #{ new_student.name }'s age"
     puts "(Applicants must be at least 5 and at most 130 years of age)"
     restart?
     print "#{ new_student.name }'s age: "
     new_age = gets.chomp
-    new_student.age = validate_age(new_student, new_age)
+    #  merge validation and assignment as new student has no data to mutate
+    new_student.age = validate_age(new_student, new_age)  #  Validation mixin
+
+    #  sets off 'kill form' chain if user enters 'R'
     (back_arrows; new_student.age = false; input_student) if new_student.age.upcase == 'R'
     return if new_student.age == false
     new_student.age = new_student.age.to_f.round  # round stray decimals
@@ -492,7 +507,7 @@ class Student
   include Formatting
   include Validation
   attr_accessor :name, :age, :gender, :height, :country_of_birth,
-                :is_disabled, :cohort, :student_number
+                :is_disabled, :cohort, :student_id
 
   def initialize(name, args={})
     options = defaults.merge(args)
@@ -503,9 +518,16 @@ class Student
     @height = options.fetch(:height)
     @country_of_birth = options.fetch(:country_of_birth)
     @is_disabled = options.fetch(:is_disabled)
-    @cohort
-    random_id = rand(10000000)
-    @student_number = "0" * (7 - random_id.to_s.length) + random_id.to_s
+    @cohort  #  assigned upon addition to cohort
+
+    #  uses luhns algorithm to assign a 'valid' zero-padded ID
+    random_num = rand(10000000)
+    random_id = "0" * (7 - random_num.to_s.length) + random_num.to_s
+    until luhns_seven(random_id) == true
+      random_num = rand(10000000)
+      random_id = "0" * (7 - random_num.to_s.length) + random_num.to_s
+    end
+    @student_id = random_id
   end
 
   #  default assignments for Student
@@ -522,7 +544,7 @@ class Student
   #  display all stats for a Student
   def quick_facts
     short_bar
-    puts "Student #{ @student_number } (#{ @cohort })".ljust(50) + "***"
+    puts "Student #{ @student_id } (#{ @cohort })".ljust(50) + "***"
     puts "Name: #{ @name }".ljust(50) + "***"
     puts "Age: #{ @age }".ljust(50) + "***"
     puts "Gender: #{ @gender }".ljust(50) + "***"
@@ -537,7 +559,7 @@ class Student
     #  types of editable data
     data = {"Name" => self.name, "Age" => self.age, "Gender" => self.gender,
             "Height" => self.height, "Country of Birth" => self.country_of_birth,
-            "Disability status" => self.is_disabled}
+            "Disability Status" => self.is_disabled}
 
     #  template and options for edit mode
     edit_mode(self)
@@ -562,6 +584,7 @@ class Student
       number = gets.chomp
     end
 
+    #  exit edit mode if user types 'R'
     (goodbye; return) if number.downcase == 'r'
 
     #  edit data for choice (using Validation mixin)
@@ -673,4 +696,4 @@ villains_academy.all_cohorts
 
 #  testing edit student
 
-sam.edit_student
+sam.luhns_seven
