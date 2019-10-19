@@ -29,7 +29,6 @@ module Formatting
   def blue
     colorize(36)
   end
-
   def grey
     colorize(30)
   end
@@ -667,7 +666,7 @@ class Student
       print "#{ self.name }'s actual height".yellow + ": "
       new_height = gets.chomp
       updated_height = validate_height(self, new_height)
-      self.height = updated_height.upcase == 'R' ? self.height : updated.height
+      self.height = updated_height.upcase == 'R' ? self.height : updated_height
     when "5"
       print "#{ self.name }'s actual country of birth".yellow + ": "
       new_country_of_birth = gets.chomp.capitalize_each
