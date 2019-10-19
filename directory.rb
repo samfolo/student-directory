@@ -10,6 +10,30 @@ module Formatting
     }.join(' ')
   end
 
+  def colorize(color)
+    "\e[#{color}m#{self}\e[0m"
+  end
+
+  def red
+    colorize(31)
+  end
+
+  def green
+    colorize(32)
+  end
+
+  def yellow
+    colorize(33)
+  end
+
+  def grey
+    colorize(30)
+  end
+
+  def bold
+    colorize(1)
+  end
+  
   private
 
   def no_prefix
@@ -38,22 +62,22 @@ module Formatting
   end
 
   def back_arrows
-      puts "<" * 53
-      puts "RESTARTING FORM".center(53)
-      puts "<" * 53
+      puts ("<" * 53).bold.yellow
+      puts "RESTARTING FORM".center(53).yellow
+      puts ("<" * 53).bold.yellow
       short_bar
   end
 
   def edit_mode(student)
-    puts "+" * 53
-    puts "EDITING (#{student.name})".center(53)
-    puts "+" * 53
+    puts ("+" * 53).bold.green
+    puts "EDITING (#{student.name})".center(53).green
+    puts ("+" * 53).bold.green
   end
 
   def exit_edit_mode
-    puts "+" * 53
-    puts "EXITING EDIT MODE".center(53)
-    puts "+" * 53
+    puts ("+" * 53).bold.green
+    puts "EXITING EDIT MODE".center(53).green
+    puts ("+" * 53).bold.green
   end
 
   def restart?
@@ -67,6 +91,7 @@ module Formatting
     puts " ".center(50)
     puts " ".center(50)
   end
+
 end
 
 module Validation
@@ -429,7 +454,7 @@ class Cohort
     restart?
     print "#{ new_student.name }'s age: "
     new_age = gets.chomp
-    #  merge validation and assignment as new student has no data to mutate
+    #  merge validation and assignment into one step as new student has no data to mutate
     new_student.age = validate_age(new_student, new_age)  #  Validation mixin
     #  sets off 'kill form' chain if user enters 'R'
     (back_arrows; new_student.age = false; input_student) if new_student.age.upcase == 'R'
@@ -456,7 +481,7 @@ class Cohort
     new_student.height = validate_height(new_student, new_height)
     (back_arrows; new_student.height = false; input_student) if new_student.height.upcase == 'R'
     return if new_student.height == false
-    new_student.height = new_student.height.to_f.round(2)
+    new_student.height = new_student.height.to_f.round(2)  #  round to 1 decimal place
   end
 
   def enter_country_of_birth(new_student)
@@ -485,19 +510,24 @@ class Cohort
       #  create a student
       new_student = Student.new(name)
       new_student.cohort = @month
-      
+      print "* Student Created *\n".green
       #  get rest of the data for the student from private methods above
       #  kills current form if user restarts form
       enter_age(new_student)
       return if new_student.age == false
+      print "* VALID *\n".green
       enter_gender(new_student)
       return if new_student.gender == false
+      print "* VALID *\n".green
       enter_height(new_student)
       return if new_student.height == false
+      print "* VALID *\n".green
       enter_country_of_birth(new_student)
       return if new_student.country_of_birth == false
+      print "* VALID *\n".green
       enter_disability_status(new_student)
       return if new_student.is_disabled == false
+      print "* VALID *\n".green
       
       #  add the student hash to the array
       @students << new_student
@@ -559,13 +589,13 @@ class Student
   #  display all stats for a Student
   def quick_facts
     short_bar
-    puts "Student #{ @student_id } (#{ @cohort })".ljust(50) + "***"
-    puts "Name: #{ @name }".ljust(50) + "***"
-    puts "Age: #{ @age }".ljust(50) + "***"
-    puts "Gender: #{ @gender }".ljust(50) + "***"
-    puts "Height: #{ @height }cm".ljust(50) + "***"
-    puts "Country of Birth: #{ @country_of_birth }".ljust(50) + "***"
-    puts "Disability Status: #{ @is_disabled }".ljust(50) + "***"
+    puts "Student #{ @student_id } (#{ @cohort })".ljust(50).bold + "***".grey.bold
+    puts "Name: #{ @name }".ljust(50).bold + "***".grey.bold
+    puts "Age: #{ @age }".ljust(50).bold + "***".grey.bold
+    puts "Gender: #{ @gender }".ljust(50).bold + "***".grey.bold
+    puts "Height: #{ @height }cm".ljust(50).bold + "***".grey.bold
+    puts "Country of Birth: #{ @country_of_birth }".ljust(50).bold + "***".grey.bold
+    puts "Disability Status: #{ @is_disabled }".ljust(50).bold + "***".grey.bold
     short_bar
   end
 
@@ -579,16 +609,16 @@ class Student
     #  template and options for edit mode
     edit_mode(self)
     self.quick_facts
-    puts "What would you like to change about this entry?".center(53)
+    puts "What would you like to change about this entry?".center(53).bold
     puts "   (Enter Number or type 'R' to abort)   ".center(53,"-")
     #puts "()".center(53)
     short_bar
-    puts ("1)".ljust(12) + "Name".rjust(18)).center(53)
-    puts ("2)".ljust(12) + "Age".rjust(18)).center(53)
-    puts ("3)".ljust(12) + "Gender".rjust(18)).center(53)
-    puts ("4)".ljust(12) + "Height".rjust(18)).center(53)
-    puts ("5)".ljust(12) + "Country of Birth".rjust(18)).center(53)
-    puts ("6)".ljust(12) + "Disability Status".rjust(18)).center(53)
+    puts "***".bold.grey + ("1)".ljust(15).rjust(23).yellow + "Name".rjust(15).bold).center(53) + "***".rjust(12).bold.grey
+    puts "***".bold.grey + ("2)".ljust(15).rjust(23).yellow + "Age".rjust(15).bold).center(53) + "***".rjust(12).bold.grey
+    puts "***".bold.grey + ("3)".ljust(15).rjust(23).yellow + "Gender".rjust(15).bold).center(53) + "***".rjust(12).bold.grey
+    puts "***".bold.grey + ("4)".ljust(15).rjust(23).yellow + "Height".rjust(15).bold).center(53) + "***".rjust(12).bold.grey
+    puts "***".bold.grey + ("5)".ljust(14).rjust(22).yellow + "Country of Birth".ljust(17).rjust(15).bold).center(53) + "***".rjust(11).bold.grey
+    puts "***".bold.grey + ("6)".ljust(13).rjust(21).yellow + "Disability Status".ljust(19).rjust(10).bold).center(53) + "***".rjust(10).bold.grey
     short_bar
     number = gets.chomp
 
@@ -600,7 +630,10 @@ class Student
     end
 
     #  exit edit mode if user types 'R'
-    (goodbye; return) if number.downcase == 'r'
+    if number.downcase == 'r'
+    puts "Done.  Current state of #{ self.name}'s profile:"
+    (self.quick_facts; exit_edit_mode; goodbye; return)
+    end
 
     #  edit data for choice (using Validation mixin)
     puts "Editing #{self.name}'s #{data.keys[number.to_i - 1].downcase}"
@@ -636,7 +669,7 @@ class Student
       updated_disability_status = validate_disability_status(self, new_disability_status)
       self.is_disabled = updated_disability_status.upcase == 'R' ? self.is_disabled : updated_disability_status
     end
-    puts "Done.  #{ self.name}'s modified profile:"
+    puts "Done.  Current state of #{ self.name}'s profile:"
     self.quick_facts
     exit_edit_mode
   end
