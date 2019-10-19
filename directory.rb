@@ -3,7 +3,7 @@
 module Formatting
   def capitalize_each
     self.split.map{ |word|
-      ["l'", "c'"].include?(word[0..1].downcase) ? (word[0..2].upcase! + word[3..-1].downcase) :
+      ["l'", "c'", "d'"].include?(word[0..1].downcase) ? (word[0..2].upcase! + word[3..-1].downcase) :
       ["(us)", "(usa)", "usa", "(uk)", "uk"].include?(word.downcase) ? word.upcase : word.capitalize
     }.join(' ')
   end
@@ -62,7 +62,7 @@ module Formatting
 end
 
 module Validation
-  def countries
+  def actual_countries
     #  avoiding external libraries for this exercise
     countries = ["Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Anguilla", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas",
     "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "British Virgin Islands",
@@ -81,6 +81,10 @@ module Validation
     "Uzbekistan", "Venezuela", "Vietnam", "Virgin Islands (US)", "Wales", "Yemen", "Zambia", "Zimbabwe"].map { |country| country.downcase.to_sym }
   end
 
+  def actual_months
+    months = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"].map { |month| month.downcase.to_sym }
+  end
   private
 
   def validate_age(student, age)
@@ -90,20 +94,20 @@ module Validation
       puts "Please enter #{ student.name }'s age"
       puts "(Applicants must be at least 5 and 130 years of age)"
       restart?
-      print "#{ student.name }'s age: "
+      print student.age == "N/A" ? "#{ student.name }'s age: " : "#{ student.name }'s actual age: "
       age = gets.chomp
     end
     age
   end
 
   def validate_gender(student, gender)
-    until ["M", "F", "NB", "O"].include?(gender) || gender.upcase == 'R'
+    until ["M", "F", "NB", "O"].include?(gender.upcase) || gender.upcase == 'R'
       short_bar
       puts "Invalid entry"
       puts "Please choose  #{ student.name }'s gender"
       puts "(M) Male / (F) Female / (NB) Non-Binary / (O) Other / Prefer not to say"
       restart?
-      print "#{ student.name }'s gender: "
+      print student.gender == "N/A" ? "#{ student.name }'s gender: " : "#{ student.name }'s actual gender: "
       gender = gets.chomp.upcase
     end
     gender
@@ -120,20 +124,20 @@ module Validation
         puts "Please enter #{ student.name }'s height (in centimeters)"
       end
       restart?
-      print "#{ student.name }'s height: "
+      print student.height == "N/A" ? "#{ student.name }'s height: " : "#{ student.name }'s actual height: "
       height = gets.chomp
     end
     height
   end
 
   def validate_country_of_birth(student, country_of_birth)
-    until self.countries.include?(country_of_birth.downcase.to_sym) || country_of_birth.upcase == 'R'
+    until self.actual_countries.include?(country_of_birth.downcase.to_sym) || country_of_birth.upcase == 'R'
       short_bar
       puts "Invalid entry"
       puts "#{ country_of_birth } is not a country"
       puts "Please enter #{ student.name }'s country of birth"
       restart?
-      print "#{ student.name }'s country of birth: "
+      print student.country_of_birth == "N/A" ? "#{ student.name }'s country of birth: " : "#{ student.name }'s actual country of birth: "
       country_of_birth = gets.chomp.capitalize_each
     end
     country_of_birth
@@ -145,7 +149,7 @@ module Validation
       puts "Invalid entry"
       puts "Please enter #{ student.name }'s disability status ( true / false )"
       restart?
-      print "#{ student.name }'s disability status: "
+      print student.is_disabled == "N/A" ? "#{ student.name }'s disability status: " : "#{ student.name }'s actual disability status: "
       disability_status = gets.chomp.downcase
     end
     disability_status
@@ -227,7 +231,11 @@ class Cohort
 
   def initialize(month)
     @academy
-    @month = month
+    if actual_months.include?(month.downcase.to_sym)
+    @month = month.capitalize
+    else
+      raise "Error: #{month} is not a month."
+    end
     @students = []
   end
 
@@ -535,7 +543,8 @@ class Student
     edit_mode(self)
     self.quick_facts
     puts "What would you like to change about this entry?".center(53)
-    puts "   (Enter Number)   ".center(53,"-")
+    puts "   (Enter Number or type 'R' to abort)   ".center(53,"-")
+    #puts "()".center(53)
     short_bar
     puts ("1)".ljust(12) + "Name".rjust(18)).center(53)
     puts ("2)".ljust(12) + "Age".rjust(18)).center(53)
@@ -547,13 +556,13 @@ class Student
     number = gets.chomp
 
     #  choose an option (or abort)
-    until (1..6).to_a.include?(number.to_i) || number.downcase == 'abort'
+    until (1..6).to_a.include?(number.to_i) || number.downcase == 'r'
       puts "Invalid entry"
       puts "Enter new number (or type 'abort' to exit)"
       number = gets.chomp
     end
 
-    return if number.downcase == 'abort'
+    (goodbye; return) if number.downcase == 'r'
 
     #  edit data for choice (using Validation mixin)
     puts "Editing #{self.name}'s #{data.keys[number.to_i - 1].downcase}"
@@ -565,8 +574,9 @@ class Student
     when "2"
       print "#{ self.name }'s actual age: "
       new_age = gets.chomp
+      #  two-staged to protect from mutation during validation (cases 2..6)
       updated_age = validate_age(self, new_age)
-      self.age = updated_age.upcase == 'R' ? self.age : updated_age
+      self.age = updated_age.upcase == 'R' ? self.age : updated_age 
     when "3"
       print "#{ self.name }'s actual gender: "
       new_gender = gets.chomp
@@ -592,6 +602,10 @@ class Student
     self.quick_facts
   end
 end
+
+#############################################################################################################
+
+# general testing
 
 #  converted test entries to Student objects
 sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true})
