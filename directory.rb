@@ -139,16 +139,16 @@ module Validation
     country_of_birth
   end
 
-  def validate_disability_status(student, is_disabled)
-    until ["true", "false"].include?(is_disabled) || is_disabled.upcase == 'R'
+  def validate_disability_status(student, disability_status)
+    until ["true", "false"].include?(disability_status) || disability_status.upcase == 'R'
       short_bar
       puts "Invalid entry"
       puts "Please enter #{ student.name }'s disability status ( true / false )"
       restart?
       print "#{ student.name }'s disability status: "
-      is_disabled = gets.chomp.downcase
+      disability_status = gets.chomp.downcase
     end
-    is_disabled
+    disability_status
   end
 end
 
@@ -240,20 +240,25 @@ class Cohort
 
     #  get the first name
     name = gets.chomp.capitalize_each
-    name = "" if name == "Abort"
 
     #  while the name is not empty, repeat this code
-    while !name.empty?
+    unless name.empty?
       #  create a student
       new_student = Student.new(name)
       new_student.cohort = @month
       
       #  get rest of the data for the student from private methods
+      #  kills current form if user restarts form
       enter_age(new_student)
+      return if new_student.age == false
       enter_gender(new_student)
+      return if new_student.gender == false
       enter_height(new_student)
+      return if new_student.height == false
       enter_country_of_birth(new_student)
+      return if new_student.country_of_birth == false
       enter_disability_status(new_student)
+      return if new_student.is_disabled == false
       
       #  add the student hash to the array
       @students << new_student
@@ -266,6 +271,7 @@ class Cohort
 
       # get another name from the user
       name = gets.chomp
+      input_student if name != ""
     end
 
       #  format results upon completion
@@ -419,6 +425,7 @@ class Cohort
   end
 
   def enter_age(new_student)
+    
     short_bar
     puts "Please enter #{ new_student.name }'s age"
     puts "(Applicants must be at least 5 and at most 130 years of age)"
@@ -426,7 +433,8 @@ class Cohort
     print "#{ new_student.name }'s age: "
     new_age = gets.chomp
     new_student.age = validate_age(new_student, new_age)
-    (back_arrows; input_student) if new_student.age.upcase == 'R'
+    (back_arrows; new_student.age = false; input_student) if new_student.age.upcase == 'R'
+    return if new_student.age == false
     new_student.age = new_student.age.to_f.round  # round stray decimals
   end
 
@@ -437,7 +445,7 @@ class Cohort
     print "#{ new_student.name }'s gender: "
     new_gender = gets.chomp.upcase
     new_student.gender = validate_gender(new_student, new_gender)
-    (back_arrows; input_student) if new_student.gender.upcase == 'R'
+    (back_arrows; new_student.gender = false; input_student) if new_student.gender.upcase == 'R'
   end
 
   def enter_height(new_student)
@@ -447,7 +455,7 @@ class Cohort
     print "#{ new_student.name }'s height: "
     new_height = gets.chomp
     new_student.height = validate_height(new_student, new_height)
-    (back_arrows; input_student) if new_student.height.upcase == 'R'
+    (back_arrows; new_student.height = false; input_student) if new_student.height.upcase == 'R'
   end
 
   def enter_country_of_birth(new_student)
@@ -457,7 +465,7 @@ class Cohort
     print "#{ new_student.name }'s country of birth: "
     new_country_of_birth = gets.chomp.capitalize_each
     new_student.country_of_birth = validate_country_of_birth(new_student, new_country_of_birth)
-    (back_arrows; input_student) if new_student.country_of_birth.upcase == 'R'
+    (back_arrows; new_student.country_of_birth = false; input_student) if new_student.country_of_birth.upcase == 'R'
   end
 
   def enter_disability_status(new_student)
@@ -467,7 +475,7 @@ class Cohort
     print "#{ new_student.name }'s disability status: "
     new_disability_status = gets.chomp.downcase
     new_student.is_disabled = validate_disability_status(new_student, new_disability_status)
-    (back_arrows; input_student) if new_student.is_disabled.upcase == 'R'
+    (back_arrows; new_student.is_disabled = false; input_student) if new_student.is_disabled.upcase == 'R'
   end
 end
 
@@ -495,11 +503,11 @@ class Student
   #  default assignments for Student
   def defaults
     {
-      age: 18,
+      age: "N/A",
       gender: "N/A",
       height: "N/A",
       country_of_birth: "N/A",
-      is_disabled: false
+      is_disabled: "N/A"
     }
   end
 
@@ -525,6 +533,7 @@ class Student
 
     #  template and options for edit mode
     edit_mode(self)
+    self.quick_facts
     puts "What would you like to change about this entry?".center(53)
     puts "   (Enter Number)   ".center(53,"-")
     short_bar
@@ -556,23 +565,28 @@ class Student
     when "2"
       print "#{ self.name }'s actual age: "
       new_age = gets.chomp
-      self.age = validate_age(self, new_age)
+      updated_age = validate_age(self, new_age)
+      self.age = updated_age.upcase == 'R' ? self.age : updated_age
     when "3"
       print "#{ self.name }'s actual gender: "
       new_gender = gets.chomp
-      self.gender = validate_gender(self, new_gender)
+      updated_gender = validate_gender(self, new_gender)
+      self.gender = updated_gender.upcase == 'R' ? self.gender : updated_gender
     when "4"
       print "#{ self.name }'s actual height: "
       new_height = gets.chomp
-      self.height = validate_height(self, new_height)
+      updated_height = validate_height(self, new_height)
+      self.height = updated_height.upcase == 'R' ? self.height : updated.height
     when "5"
       print "#{ self.name }'s actual country of birth: "
       new_country_of_birth = gets.chomp
-      self.country_of_birth = validate_country_of_birth(self, new_country_of_birth)
+      updated_country_of_birth = validate_country_of_birth(self, new_country_of_birth)
+      self.country_of_birth = updated_country_of_birth.upcase == 'R' ? self.country_of_birth : updated_country_of_birth
     when "6"
       print "#{ self.name }'s actual disability status: "
-      new_is_disabled = gets.chomp
-      self.is_disabled = validate_is_disabled(self, new_is_disabled)
+      new_disability_status = gets.chomp
+      updated_disability_status = validate_disability_status(self, new_disability_status)
+      self.is_disabled = updated_disability_status.upcase == 'R' ? self.is_disabled : updated_disability_status
     end
     puts "Done.  #{ self.name}'s modified profile:"
     self.quick_facts
@@ -580,7 +594,7 @@ class Student
 end
 
 #  converted test entries to Student objects
-sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,"})
+sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true})
 vader = Student.new("Darth Vader")
 hannibal = Student.new("Dr. Hannibal Lecter")
 nurse_ratched = Student.new("Nurse Ratched")
@@ -608,11 +622,11 @@ va_november.roster
 
 #va_november.input_student
 puts " "
-va_november.roster
+#va_november.roster
 puts " "
-va_november.by_initial("W")
+#va_november.by_initial("W")
 puts " "
-va_november.by_length(10)
+#va_november.by_length(10)
 
 #  create "Villains Academy" December Cohort object
 va_december = Cohort.new("December")
@@ -624,20 +638,19 @@ va_december.roster
 
 va_december.input_student
 puts " "
-va_december.roster
+#va_december.roster
 puts " "
-va_december.by_initial("J")
+#va_december.by_initial("J")
 puts " "
-va_december.by_length(7)
+#va_december.by_length(7)
 
 villains_academy.add_cohort(va_november, va_december)
-villains_academy.all_cohorts
 
 #  testing delete fuction
 
 va_november.delete_student(alex_delarge)
 va_december.delete_student(joffrey, terminator)
-villains_academy.all_cohorts
+#  villains_academy.all_cohorts
 
 #  testing student migration
 
