@@ -269,39 +269,8 @@ class Cohort
 
     #  get the first name
     name = gets.chomp.capitalize_each
-
-    #  unless the name is not empty, repeat this code
-    unless name.empty?
-      #  create a student
-      new_student = Student.new(name)
-      new_student.cohort = @month
-      
-      #  get rest of the data for the student from private methods
-      #  kills current form if user restarts form
-      enter_age(new_student)
-      return if new_student.age == false
-      enter_gender(new_student)
-      return if new_student.gender == false
-      enter_height(new_student)
-      return if new_student.height == false
-      enter_country_of_birth(new_student)
-      return if new_student.country_of_birth == false
-      enter_disability_status(new_student)
-      return if new_student.is_disabled == false
-      
-      #  add the student hash to the array
-      @students << new_student
-      puts " "
-      puts " "
-      puts "Student added. New total: #{ @students.count }.  Last entry:".center(53)
-      new_student.quick_facts
-      puts "Please enter another name -- (press 'return' to exit)"
-      short_bar
-
-      # get another name from the user
-      name = gets.chomp
-      input_student if name != ""
-    end
+    #  gets rest of data from private method 'form' if name is entered, else aborts
+    form(name)
 
       #  format results upon completion
       goodbye  #  Formatting mixin
@@ -509,6 +478,43 @@ class Cohort
     new_student.is_disabled = validate_disability_status(new_student, new_disability_status)
     (back_arrows; new_student.is_disabled = false; input_student) if new_student.is_disabled.upcase == 'R'
   end
+
+  def form(name)
+    #  unless the name is not empty, repeat this code
+    unless name.empty?
+      #  create a student
+      new_student = Student.new(name)
+      new_student.cohort = @month
+      
+      #  get rest of the data for the student from private methods above
+      #  kills current form if user restarts form
+      enter_age(new_student)
+      return if new_student.age == false
+      enter_gender(new_student)
+      return if new_student.gender == false
+      enter_height(new_student)
+      return if new_student.height == false
+      enter_country_of_birth(new_student)
+      return if new_student.country_of_birth == false
+      enter_disability_status(new_student)
+      return if new_student.is_disabled == false
+      
+      #  add the student hash to the array
+      @students << new_student
+      puts " "
+      puts " "
+      puts "Student added. New total: #{ @students.count }.  Last entry:".center(53)
+      new_student.quick_facts
+      puts " "
+      puts " "
+      puts "Please enter another name -- (press 'return' to exit)"
+      short_bar
+
+      # get another name from the user
+      name = gets.chomp
+      form(name) if name != ""
+    end
+  end
 end
 
 # each student instance
@@ -557,7 +563,7 @@ class Student
     puts "Name: #{ @name }".ljust(50) + "***"
     puts "Age: #{ @age }".ljust(50) + "***"
     puts "Gender: #{ @gender }".ljust(50) + "***"
-    puts "Height: #{ @height }".ljust(50) + "***"
+    puts "Height: #{ @height }cm".ljust(50) + "***"
     puts "Country of Birth: #{ @country_of_birth }".ljust(50) + "***"
     puts "Disability Status: #{ @is_disabled }".ljust(50) + "***"
     short_bar
@@ -589,7 +595,7 @@ class Student
     #  choose an option (or abort)
     until (1..6).to_a.include?(number.to_i) || number.downcase == 'r'
       puts "Invalid entry"
-      puts "Enter new number (or type 'abort' to exit)"
+      puts "Enter new number (or type 'R' to exit)"
       number = gets.chomp
     end
 
