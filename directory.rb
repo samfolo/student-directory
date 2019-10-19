@@ -26,6 +26,10 @@ module Formatting
     colorize(33)
   end
 
+  def blue
+    colorize(36)
+  end
+
   def grey
     colorize(30)
   end
@@ -33,7 +37,15 @@ module Formatting
   def bold
     colorize(1)
   end
+
+  def italic
+    colorize(3)
+  end
   
+  def random_color
+    #  30..36
+    colorize(rand(7) + 30)
+  end
   private
 
   def no_prefix
@@ -54,18 +66,18 @@ module Formatting
   end
   
   def long_bar
-    puts "-" * 94
+    "-" * 94
   end
 
   def short_bar
-    puts "-" * 53
+    "-" * 53
   end
 
   def back_arrows
       puts ("<" * 53).bold.yellow
       puts "RESTARTING FORM".center(53).yellow
       puts ("<" * 53).bold.yellow
-      short_bar
+      puts short_bar
   end
 
   def edit_mode(student)
@@ -135,42 +147,45 @@ module Validation
 
   def validate_age(student, age)
     until (5..130).to_a.include?(age.to_f.round) || age.upcase == 'R'
-      short_bar
+      puts "* INVALID *".bold.red
+      puts short_bar
       puts "Invalid entry"
-      puts "Please enter #{ student.name }'s age"
-      puts "(Applicants must be at least 5 and 130 years of age)"
+      puts ("Please enter #{ student.name }'s age").blue
+      puts "(Applicants must be at least 5 and at most 130 years of age)".blue
       restart?
-      print student.age == "N/A" ? "#{ student.name }'s age: " : "#{ student.name }'s actual age: "
+      print student.age == "N/A" ? "#{ student.name.upcase }'s age".yellow + ": " : "#{ student.name.upcase }'s actual age".yellow + ": "
       age = gets.chomp
     end
     age
   end
 
   def validate_gender(student, gender)
-    until ["M", "F", "NB", "O"].include?(gender.upcase) || gender.upcase == 'R'
-      short_bar
+    until (/[a-zA-Z]/.match(gender) && ["M", "F", "NB", "O"].include?(gender.upcase)) || ["R", "r"].include?(gender)
+      puts "* INVALID *".bold.red
+      puts short_bar
       puts "Invalid entry"
-      puts "Please choose  #{ student.name }'s gender"
-      puts "(M) Male / (F) Female / (NB) Non-Binary / (O) Other / Prefer not to say"
+      puts ("Please choose #{ student.name }'s gender").blue
+      puts "(".blue + "M" + ") Male / (".blue + "F" + ") Female / (".blue + "NB" + ") Non-Binary / (".blue + "O" + ") Other / Prefer not to say".blue
       restart?
-      print student.gender == "N/A" ? "#{ student.name }'s gender: " : "#{ student.name }'s actual gender: "
-      gender = gets.chomp.upcase!
+      print student.gender == "N/A" ? "#{ student.name }'s gender".yellow + ": " : "#{ student.name }'s actual gender".yellow + ": "
+      gender = /[a-zA-Z]/.match(gender) ? gets.chomp : gets.chomp.upcase!
     end
     gender
   end
 
   def validate_height(student, height)
     until height.to_i > 0 && height.to_i < 300 || height.upcase == 'R'
-      short_bar
+      puts "* INVALID *".bold.red
+      puts short_bar
       if height.to_i > 0
-        puts "Due to the events of last year we no longer accept giants to Villains Academy."
-        puts "Please enter #{ student.name }'s height (in centimeters)"
+        puts "Due to the events of last year we no longer accept giants to Villains Academy.".blue
+        puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
       else
         puts "Invalid entry"
-        puts "Please enter #{ student.name }'s height (in centimeters)"
+        puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
       end
       restart?
-      print student.height == "N/A" ? "#{ student.name }'s height: " : "#{ student.name }'s actual height: "
+      print student.height == "N/A" ? "#{ student.name }'s height".yellow + ": " : "#{ student.name }'s actual height".yellow + ": "
       height = gets.chomp
     end
     height
@@ -178,12 +193,13 @@ module Validation
 
   def validate_country_of_birth(student, country_of_birth)
     until self.actual_countries.include?(country_of_birth.downcase.to_sym) || country_of_birth.upcase == 'R'
-      short_bar
+      puts "* INVALID *".bold.red
+      puts short_bar
       puts "Invalid entry"
       puts "#{ country_of_birth } is not a country"
-      puts "Please enter #{ student.name }'s country of birth"
+      puts ("Please enter #{ student.name }'s country of birth").blue
       restart?
-      print student.country_of_birth == "N/A" ? "#{ student.name }'s country of birth: " : "#{ student.name }'s actual country of birth: "
+      print student.country_of_birth == "N/A" ? "#{ student.name }'s country of birth".yellow + ": " : "#{ student.name }'s actual country of birth".yellow + ": "
       country_of_birth = gets.chomp.capitalize_each
     end
     country_of_birth
@@ -191,11 +207,12 @@ module Validation
 
   def validate_disability_status(student, disability_status)
     until ["true", "false"].include?(disability_status) || disability_status.upcase == 'R'
-      short_bar
+      puts "* INVALID *".bold.red
+      puts short_bar
       puts "Invalid entry"
-      puts "Please enter #{ student.name }'s disability status ( true / false )"
+      puts ("Please enter #{ student.name }'s disability status (").blue + " true " + "/".blue + " false " + ")".blue
       restart?
-      print student.is_disabled == "N/A" ? "#{ student.name }'s disability status: " : "#{ student.name }'s actual disability status: "
+      print student.is_disabled == "N/A" ? ("#{ student.name }'s disability status").yellow + ": " : "#{ student.name }'s actual disability status".yellow + ": "
       disability_status = gets.chomp.downcase
     end
     disability_status
@@ -240,29 +257,31 @@ class Academy
 
   #  header of table
   def print_header
-    long_bar
-    print "|" * 23, "The Students of Villains Academy".center(48), "|" * 23, "\n"
-    print "|" * 23, "==== All Cohorts ====".center(48), "|" * 23, "\n"
-    long_bar
+    puts long_bar.blue
+    print ("|" * 23).blue, "The Students of Villains Academy".center(48), ("|" * 23).blue, "\n"
+    print ("|" * 23).blue, "==== All Cohorts ====".center(48), ("|" * 23).blue, "\n"
+    puts long_bar.blue
   end
 
   #  body of table
   def print_body
     @cohorts.each { |cohort| 
-      long_bar
-      print "|" * 23, "-- #{ cohort.month } Cohort --".center(48), "|" * 23, "\n"
-      long_bar
+      house_colors = rand(7) + 30  #  catches a 'house color' for the cohort sub-table
+      puts long_bar.colorize(house_colors)
+      print ("|" * 23).colorize(house_colors), "-- #{ cohort.month } Cohort --".center(48), ("|" * 23).colorize(house_colors), "\n"
+      puts long_bar.colorize(house_colors)
       cohort.print_body
-      long_bar
+      puts long_bar.colorize(house_colors)
     }
   end
 
   #  footer of table
   def print_footer
-    long_bar
+    puts long_bar.blue
     puts total_students != 1 ?
-    "Overall, the Academy has #{ total_students } great students over #{ @cohorts.count } cohorts" : 
-    "The Academy only has #{ total_students } student."
+    "Overall, the Academy has ".blue + "#{ total_students }".bold.blue + 
+    " great students over ".blue + "#{ @cohorts.count }".bold.blue + " cohorts".blue : 
+    "The Academy only has ".blue + "#{ total_students }".bold.blue + " student.".blue
 
     puts " "
     puts " "
@@ -283,23 +302,24 @@ class Cohort
       raise "Error: #{month} is not a month."
     end
     @students = []
+
   end
 
   #  add one or multiple students from CLI
   def input_student
-    puts "Entering new names for the #{ @month } cohort"
-    puts "Please enter the first name  (press 'return' to exit)"
-    short_bar
-    print "Name: "
+    puts "Entering a name for the #{ @month } cohort".bold.blue
+    puts "Please enter a new name -- (".blue + "press 'return' to exit" + ")".blue
+    puts short_bar
+    print "Name".yellow + ": "
 
     #  get the first name
     name = gets.chomp.capitalize_each
     #  gets rest of data from private method 'form' if name is entered, else aborts
     form(name)
-
+      
       #  format results upon completion
       goodbye  #  Formatting mixin
-      puts "There are now #{ @students.count } students in the #{@month} cohort:"
+      puts "There are now ".blue + "#{ @students.count }".bold.blue + " students in the #{@month} cohort:".blue
       puts " "
       self.student_profiles
   end
@@ -332,7 +352,7 @@ class Cohort
     #  displays remaining (invalid) entries
     if valid.length != entries.length
     invalid = entries.reject { |entry| valid.include?(entry) }
-    puts "invalid Entries: #{invalid.length}"
+    puts "invalid Entries: #{invalid.length}".bold.blue
     invalid.each { |entry| puts "#{entry.name}: #{entry.student_id}" }
     end
   end
@@ -344,7 +364,7 @@ class Cohort
       cohort.add_student(student)
       self.delete_student(student)
     elsif !cohort.is_a?(Cohort)
-      puts "Invalid target Cohort - operation aborted"
+      puts "Invalid target Cohort - operation aborted".bold.red
     end
     }
   end
@@ -352,7 +372,7 @@ class Cohort
   #  display all profiles of students in Cohort
   def student_profiles
     @students.each.with_index { |student, i| 
-        puts "#{ i+1 })"
+        puts "#{ i+1 })".bold.yellow
         student.quick_facts 
     }
     puts " "
@@ -376,11 +396,11 @@ class Cohort
     }
   
     # putses result to console
-    puts "Students filtered by initial '#{ initial }' (excluding prefixes)"
-    short_bar
+    puts "Students filtered by initial '#{ initial }' (excluding prefixes)".bold.blue
+    puts short_bar
     puts filtered_list
-    short_bar
-    puts "Total Students: #{ filtered_list.count }"
+    puts short_bar
+    puts "Total Students".blue + ": #{ filtered_list.count }".bold.blue
     puts " "
     puts " "
   end
@@ -396,23 +416,23 @@ class Cohort
     }
   
     # putses result to console
-    puts "Students filed under names with no more than:"
-    puts "#{ length } characters (excluding prefixes)"
-    short_bar
+    puts "Students filed under names with no more than:".blue
+    puts "#{ length }".bold.blue + " characters (excluding prefixes)".blue
+    puts short_bar
     puts filtered_list
-    short_bar
-    puts "Total Students: #{ filtered_list.count }"
+    puts short_bar
+    puts "Total Students:".blue + " #{ filtered_list.count }".bold.blue
     puts " "
     puts " "
   end
 
   #  header of table
   def print_header
-    long_bar
+    puts long_bar
     print "|" * 23, "The Students of Villains Academy".center(48), "|" * 23, "\n"
     print "|" * 23, "-- #{ @month } Cohort --".center(48), "|" * 23, "\n"
-    long_bar
-    long_bar
+    puts long_bar
+    puts long_bar
   end
 
   #  body of table
@@ -426,87 +446,75 @@ class Cohort
 
   #  footer of table
   def print_footer
-    long_bar
+    puts long_bar
     puts @students.count != 1 ?
-    "Overall, this cohort has #{ @students.count } great students" : 
-    "This cohort only has #{ @students.count } student."
-    puts " "
+    "Overall, this cohort has ".blue + "#{ @students.count }".bold.blue + " great students".blue : 
+    "This cohort only has".blue + "#{ @students.count }".bold.blue + " student.".blue
     puts " "
   end
 
   private
 
-  #  call a specific data entry function (currently unused)
-  def option(ord, new_student)
-    inputs = [
-      input_student, enter_age(new_student),
-      enter_gender(new_student), enter_height(new_student),
-      enter_country_of_birth(new_student), enter_disability_status(new_student)
-    ]
-
-    inputs[ord]
-  end
-
   def enter_age(new_student)
-    short_bar
-    puts "Please enter #{ new_student.name }'s age"
-    puts "(Applicants must be at least 5 and at most 130 years of age)"
+    puts short_bar
+    puts ("Please enter #{ new_student.name }'s age").blue
+    puts "(Applicants must be at least 5 and at most 130 years of age)".blue
     restart?
-    print "#{ new_student.name }'s age: "
+    print "#{ new_student.name }'s age".yellow + ": "
     new_age = gets.chomp
     #  merge validation and assignment into one step as new student has no data to mutate
     new_student.age = validate_age(new_student, new_age)  #  Validation mixin
     #  sets off 'kill form' chain if user enters 'R'
-    (back_arrows; new_student.age = false; input_student) if new_student.age.upcase == 'R'
+    (back_arrows; new_student.age = false) if new_student.age.upcase == 'R'
     return if new_student.age == false
     new_student.age = new_student.age.to_f.round  # round stray decimals
   end
 
   def enter_gender(new_student)
-    short_bar
-    puts "Please enter #{ new_student.name }'s gender ( M / F / NB / O )"
+    puts short_bar
+    puts ("Please enter #{ new_student.name }'s gender (").blue + " M " + "/".blue + " F " + "/".blue + " NB " + "/".blue + " O " + ")".blue
     restart?
-    print "#{ new_student.name }'s gender: "
+    print "#{ new_student.name }'s gender".yellow + ": "
     new_gender = gets.chomp.upcase
     new_student.gender = validate_gender(new_student, new_gender)
-    (back_arrows; new_student.gender = false; input_student) if new_student.gender.upcase == 'R'
+    (back_arrows; new_student.gender = false) if new_student.gender.upcase == 'R'
   end
 
   def enter_height(new_student)
-    short_bar
-    puts "Please enter #{ new_student.name }'s height (in centimeters)"
+    puts short_bar
+    puts ("Please enter #{ new_student.name }'s height (").blue + "in centimeters" + ")".blue
     restart?
-    print "#{ new_student.name }'s height: "
+    print "#{ new_student.name }'s height".yellow + ": "
     new_height = gets.chomp
     new_student.height = validate_height(new_student, new_height)
-    (back_arrows; new_student.height = false; input_student) if new_student.height.upcase == 'R'
+    (back_arrows; new_student.height = false) if new_student.height.upcase == 'R'
     return if new_student.height == false
     new_student.height = new_student.height.to_f.round(2)  #  round to 1 decimal place
   end
 
   def enter_country_of_birth(new_student)
-    short_bar
-    puts "Please enter #{ new_student.name }'s country of birth"
+    puts short_bar
+    puts ("Please enter #{ new_student.name }'s country of birth").blue
     restart?
     print "#{ new_student.name }'s country of birth: "
     new_country_of_birth = gets.chomp.capitalize_each
     new_student.country_of_birth = validate_country_of_birth(new_student, new_country_of_birth)
-    (back_arrows; new_student.country_of_birth = false; input_student) if new_student.country_of_birth.upcase == 'R'
+    (back_arrows; new_student.country_of_birth = false) if new_student.country_of_birth.upcase == 'R'
   end
 
   def enter_disability_status(new_student)
-    short_bar
-    puts "Please enter #{ new_student.name }'s disability status ( true / false )"
+    puts short_bar
+    puts ("Please enter #{ new_student.name }'s disability status (").blue + " true " + "/".blue + " false " + ")".blue
     restart?
-    print "#{ new_student.name }'s disability status: "
+    print "#{ new_student.name }'s disability status".yellow + ": "
     new_disability_status = gets.chomp.downcase
     new_student.is_disabled = validate_disability_status(new_student, new_disability_status)
-    (back_arrows; new_student.is_disabled = false; input_student) if new_student.is_disabled.upcase == 'R'
+    (back_arrows; new_student.is_disabled = false) if new_student.is_disabled.upcase == 'R'
   end
 
   def form(name)
     #  unless the name is not empty, repeat this code
-    unless name.empty?
+    until name.empty?
       #  create a student
       new_student = Student.new(name)
       new_student.cohort = @month
@@ -514,36 +522,38 @@ class Cohort
       #  get rest of the data for the student from private methods above
       #  kills current form if user restarts form
       enter_age(new_student)
-      return if new_student.age == false
-      print "* VALID *\n".green
+      break if new_student.age == false
+      print "* VALID *\n".bold.green
       enter_gender(new_student)
-      return if new_student.gender == false
-      print "* VALID *\n".green
+      break if new_student.gender == false
+      print "* VALID *\n".bold.green
       enter_height(new_student)
-      return if new_student.height == false
-      print "* VALID *\n".green
+      break if new_student.height == false
+      print "* VALID *\n".bold.green
       enter_country_of_birth(new_student)
-      return if new_student.country_of_birth == false
-      print "* VALID *\n".green
+      break if new_student.country_of_birth == false
+      print "* VALID *\n".bold.green
       enter_disability_status(new_student)
-      return if new_student.is_disabled == false
-      print "* VALID *\n".green
+      break if new_student.is_disabled == false
+      print "* VALID *\n".bold.green
       
       #  add the student hash to the array
       @students << new_student
       puts " "
       puts " "
-      puts "Student added. New total: #{ @students.count }.  Last entry:".center(53)
+      puts ("Student added. New total: ".blue + "#{ @students.count }".bold.blue + 
+      ".  Last entry:".blue).center(53)
       new_student.quick_facts
       puts " "
       puts " "
-      puts "Please enter another name -- (press 'return' to exit)"
-      short_bar
+      puts "Please enter another name -- (".blue + "press 'return' to exit" + ")".blue
+      puts short_bar
 
       # get another name from the user
       name = gets.chomp
-      form(name) if name != ""
+      name != "" ? form(name) : return
     end
+    return false
   end
 end
 
@@ -588,15 +598,15 @@ class Student
 
   #  display all stats for a Student
   def quick_facts
-    short_bar
-    puts "Student #{ @student_id } (#{ @cohort })".ljust(50).bold + "***".grey.bold
-    puts "Name: #{ @name }".ljust(50).bold + "***".grey.bold
-    puts "Age: #{ @age }".ljust(50).bold + "***".grey.bold
-    puts "Gender: #{ @gender }".ljust(50).bold + "***".grey.bold
-    puts "Height: #{ @height }cm".ljust(50).bold + "***".grey.bold
-    puts "Country of Birth: #{ @country_of_birth }".ljust(50).bold + "***".grey.bold
-    puts "Disability Status: #{ @is_disabled }".ljust(50).bold + "***".grey.bold
-    short_bar
+    puts short_bar
+    puts "Student #{ @student_id } (#{ @cohort })".ljust(50).bold + "***".bold
+    puts "Name: #{ @name }".ljust(50).bold + "***".bold
+    puts "Age: #{ @age }".ljust(50).bold + "***".bold
+    puts "Gender: #{ @gender }".ljust(50).bold + "***".bold
+    puts "Height: #{ @height }cm".ljust(50).bold + "***".bold
+    puts "Country of Birth: #{ @country_of_birth }".ljust(50).bold + "***".bold
+    puts "Disability Status: #{ @is_disabled }".ljust(50).bold + "***".bold
+    puts short_bar
   end
 
   #  edit data for student
@@ -609,29 +619,29 @@ class Student
     #  template and options for edit mode
     edit_mode(self)
     self.quick_facts
-    puts "What would you like to change about this entry?".center(53).bold
+    puts "What would you like to change about this entry?".center(53).bold.blue
     puts "   (Enter Number or type 'R' to abort)   ".center(53,"-")
     #puts "()".center(53)
-    short_bar
-    puts "***".bold.grey + ("1)".ljust(15).rjust(23).yellow + "Name".rjust(15).bold).center(53) + "***".rjust(12).bold.grey
-    puts "***".bold.grey + ("2)".ljust(15).rjust(23).yellow + "Age".rjust(15).bold).center(53) + "***".rjust(12).bold.grey
-    puts "***".bold.grey + ("3)".ljust(15).rjust(23).yellow + "Gender".rjust(15).bold).center(53) + "***".rjust(12).bold.grey
-    puts "***".bold.grey + ("4)".ljust(15).rjust(23).yellow + "Height".rjust(15).bold).center(53) + "***".rjust(12).bold.grey
-    puts "***".bold.grey + ("5)".ljust(14).rjust(22).yellow + "Country of Birth".ljust(17).rjust(15).bold).center(53) + "***".rjust(11).bold.grey
-    puts "***".bold.grey + ("6)".ljust(13).rjust(21).yellow + "Disability Status".ljust(19).rjust(10).bold).center(53) + "***".rjust(10).bold.grey
-    short_bar
+    puts short_bar
+    puts "***".bold + ("1)".ljust(15).rjust(23).yellow + "Name".rjust(15).bold).center(53) + "***".rjust(12).bold
+    puts "***".bold + ("2)".ljust(15).rjust(23).yellow + "Age".rjust(15).bold).center(53) + "***".rjust(12).bold
+    puts "***".bold + ("3)".ljust(15).rjust(23).yellow + "Gender".rjust(15).bold).center(53) + "***".rjust(12).bold
+    puts "***".bold + ("4)".ljust(15).rjust(23).yellow + "Height".rjust(15).bold).center(53) + "***".rjust(12).bold
+    puts "***".bold + ("5)".ljust(14).rjust(22).yellow + "Country of Birth".ljust(17).rjust(15).bold).center(53) + "***".rjust(11).bold
+    puts "***".bold + ("6)".ljust(13).rjust(21).yellow + "Disability Status".ljust(19).rjust(10).bold).center(53) + "***".rjust(10).bold
+    puts short_bar
     number = gets.chomp
 
     #  choose an option (or abort)
     until (1..6).to_a.include?(number.to_i) || number.downcase == 'r'
-      puts "Invalid entry"
+      puts "Invalid entry".red
       puts "Enter new number (or type 'R' to exit)"
       number = gets.chomp
     end
 
     #  exit edit mode if user types 'R'
     if number.downcase == 'r'
-    puts "Done.  Current state of #{ self.name}'s profile:"
+    puts "Done.  Current state of #{ self.name}'s profile:".green
     (self.quick_facts; exit_edit_mode; goodbye; return)
     end
 
@@ -639,37 +649,37 @@ class Student
     puts "Editing #{self.name}'s #{data.keys[number.to_i - 1].downcase}"
     case number
     when "1"
-      print "Actual name: "
+      print "Actual name".yellow + ": "
       entry = gets.chomp
       data[number] = entry
     when "2"
-      print "#{ self.name }'s actual age: "
+      print "#{ self.name }'s actual age".yellow + ": "
       new_age = gets.chomp
       #  two-staged to protect from mutation during validation (cases 2..6)
       updated_age = validate_age(self, new_age)
       self.age = updated_age.upcase == 'R' ? self.age : updated_age 
     when "3"
-      print "#{ self.name }'s actual gender: "
+      print "#{ self.name }'s actual gender".yellow + ": "
       new_gender = gets.chomp.upcase
       updated_gender = validate_gender(self, new_gender)
       self.gender = updated_gender.upcase == 'R' ? self.gender : updated_gender
     when "4"
-      print "#{ self.name }'s actual height: "
+      print "#{ self.name }'s actual height".yellow + ": "
       new_height = gets.chomp
       updated_height = validate_height(self, new_height)
       self.height = updated_height.upcase == 'R' ? self.height : updated.height
     when "5"
-      print "#{ self.name }'s actual country of birth: "
+      print "#{ self.name }'s actual country of birth".yellow + ": "
       new_country_of_birth = gets.chomp.capitalize_each
       updated_country_of_birth = validate_country_of_birth(self, new_country_of_birth)
       self.country_of_birth = updated_country_of_birth.upcase == 'R' ? self.country_of_birth : updated_country_of_birth
     when "6"
-      print "#{ self.name }'s actual disability status: "
+      print "#{ self.name }'s actual disability status".yellow + ": "
       new_disability_status = gets.chomp
       updated_disability_status = validate_disability_status(self, new_disability_status)
       self.is_disabled = updated_disability_status.upcase == 'R' ? self.is_disabled : updated_disability_status
     end
-    puts "Done.  Current state of #{ self.name}'s profile:"
+    puts "Done.  Current state of #{ self.name}'s profile".yellow + ":"
     self.quick_facts
     exit_edit_mode
   end
