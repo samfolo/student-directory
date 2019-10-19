@@ -10,41 +10,19 @@ module Formatting
     }.join(' ')
   end
 
-  def colorize(color)
-    "\e[#{color}m#{self}\e[0m"
-  end
-
-  def red
-    colorize(31)
-  end
-
-  def green
-    colorize(32)
-  end
-
-  def yellow
-    colorize(33)
-  end
-
-  def blue
-    colorize(36)
-  end
-  def grey
-    colorize(30)
-  end
-
-  def bold
-    colorize(1)
-  end
-
-  def italic
-    colorize(3)
-  end
+  #  colors for CLI
+  def colorize(color); "\e[#{color}m#{self}\e[0m"; end
+  def red; colorize(31); end
+  def green; colorize(32); end
+  def yellow; colorize(33); end
+  def blue; colorize(36); end
+  def darkblue; colorize(34); end
+  def grey; colorize(30); end
+  def bold; colorize(1); end
+  def italic; colorize(3); end  
+  def random_color; colorize(rand(7) + 30); end  #  random from 30..36
+                                                 #  (maybe useful?)
   
-  def random_color
-    #  30..36
-    colorize(rand(7) + 30)
-  end
   private
 
   def no_prefix
@@ -265,12 +243,11 @@ class Academy
   #  body of table
   def print_body
     @cohorts.each { |cohort| 
-      house_colors = rand(7) + 30  #  catches a 'house color' for the cohort sub-table
-      puts long_bar.colorize(house_colors)
-      print ("|" * 23).colorize(house_colors), "-- #{ cohort.month } Cohort --".center(48), ("|" * 23).colorize(house_colors), "\n"
-      puts long_bar.colorize(house_colors)
+      puts long_bar.darkblue
+      print ("|" * 23).darkblue, "-- #{ cohort.month } Cohort --".center(48), ("|" * 23).darkblue, "\n"
+      puts long_bar.darkblue
       cohort.print_body
-      puts long_bar.colorize(house_colors)
+      puts long_bar.darkblue
     }
   end
 
@@ -301,7 +278,6 @@ class Cohort
       raise "Error: #{month} is not a month."
     end
     @students = []
-
   end
 
   #  add one or multiple students from CLI
@@ -363,7 +339,7 @@ class Cohort
       cohort.add_student(student)
       self.delete_student(student)
     elsif !cohort.is_a?(Cohort)
-      puts "Invalid target Cohort - operation aborted".bold.red
+      raise "Invalid target Cohort - operation aborted"
     end
     }
   end
@@ -427,11 +403,11 @@ class Cohort
 
   #  header of table
   def print_header
-    puts long_bar
-    print "|" * 23, "The Students of Villains Academy".center(48), "|" * 23, "\n"
-    print "|" * 23, "-- #{ @month } Cohort --".center(48), "|" * 23, "\n"
-    puts long_bar
-    puts long_bar
+    puts long_bar.blue
+    print ("|" * 23).blue, "The Students of Villains Academy".center(48), ("|" * 23).blue, "\n"
+    print ("|" * 23).blue, "-- #{ @month } Cohort --".center(48), ("|" * 23).blue, "\n"
+    puts long_bar.blue
+    puts long_bar.blue
   end
 
   #  body of table
@@ -445,10 +421,11 @@ class Cohort
 
   #  footer of table
   def print_footer
-    puts long_bar
+    puts long_bar.blue
     puts @students.count != 1 ?
-    "Overall, this cohort has ".blue + "#{ @students.count }".bold.blue + " great students".blue : 
-    "This cohort only has".blue + "#{ @students.count }".bold.blue + " student.".blue
+    "Overall, this cohort has ".blue + "#{ @students.count }".bold + " great students".blue : 
+    "This cohort only has".blue + "#{ @students.count }".bold + " student.".blue
+    puts " "
     puts " "
   end
 
@@ -495,7 +472,7 @@ class Cohort
     puts short_bar
     puts ("Please enter #{ new_student.name }'s country of birth").blue
     restart?
-    print "#{ new_student.name }'s country of birth: "
+    print ("#{ new_student.name }'s country of birth").blue + ": "
     new_country_of_birth = gets.chomp.capitalize_each
     new_student.country_of_birth = validate_country_of_birth(new_student, new_country_of_birth)
     (back_arrows; new_student.country_of_birth = false) if new_student.country_of_birth.upcase == 'R'
@@ -715,13 +692,13 @@ va_november.add_student(sam, vader, hannibal, nurse_ratched,
 #  test methods in CLI
 va_november.roster
 
-#va_november.input_student
-puts " "
-#va_november.roster
-puts " "
-#va_november.by_initial("W")
-puts " "
-#va_november.by_length(10)
+va_november.input_student
+##puts " "
+##va_november.roster
+##puts " "
+##va_november.by_initial("W")
+##puts " "
+##va_november.by_length(10)
 
 #  create "Villains Academy" December Cohort object
 va_december = Cohort.new("December")
@@ -731,21 +708,21 @@ va_december.add_student(wicked_witch, terminator, freddy_krueger,
 
 va_december.roster
 
-va_december.input_student
-puts " "
-#va_december.roster
-puts " "
-#va_december.by_initial("J")
-puts " "
-#va_december.by_length(7)
+##va_december.input_student
+##puts " "
+##va_december.roster
+##puts " "
+##va_december.by_initial("J")
+##puts " "
+##va_december.by_length(7)
 
 villains_academy.add_cohort(va_november, va_december)
 
 #  testing delete fuction
 
-va_november.delete_student(alex_delarge)
-va_december.delete_student(joffrey, terminator)
-#  villains_academy.all_cohorts
+##va_november.delete_student(alex_delarge)
+##va_december.delete_student(joffrey, terminator)
+##villains_academy.all_cohorts
 
 #  testing student migration
 
