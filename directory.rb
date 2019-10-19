@@ -123,7 +123,7 @@ module Validation
   end
 
   def validate_age(student, age)
-    until (5..130).to_a.include?(age.to_f.round) || age.upcase == 'R'
+    until (5..130).to_a.include?(age.to_f.round) || ['R', 'r'].include?(age)
       puts "* INVALID *".bold.red
       puts short_bar
       puts "Invalid entry"
@@ -151,7 +151,7 @@ module Validation
   end
 
   def validate_height(student, height)
-    until height.to_i > 0 && height.to_i < 300 || height.upcase == 'R'
+    until height.to_i > 0 && height.to_i < 300 || ['R', 'r'].include?(height)
       puts "* INVALID *".bold.red
       puts short_bar
       if height.to_i > 0
@@ -169,7 +169,7 @@ module Validation
   end
 
   def validate_country_of_birth(student, country_of_birth)
-    until self.actual_countries.include?(country_of_birth.downcase.to_sym) || country_of_birth.upcase == 'R'
+    until self.actual_countries.include?(country_of_birth.downcase.to_sym) || ['R', 'r'].include?(country_of_birth)
       puts "* INVALID *".bold.red
       puts short_bar
       puts "Invalid entry"
@@ -183,7 +183,7 @@ module Validation
   end
 
   def validate_disability_status(student, disability_status)
-    until ["true", "false"].include?(disability_status) || disability_status.upcase == 'R'
+    until ["true", "false"].include?(disability_status) || ['R', 'r'].include?(disability_status)
       puts "* INVALID *".bold.red
       puts short_bar
       puts "Invalid entry"
@@ -286,17 +286,15 @@ class Cohort
     puts "Please enter a new name -- (".blue + "press 'return' to exit" + ")".blue
     puts short_bar
     print "Name".yellow + ": "
-
     #  get the first name
     name = gets.chomp.capitalize_each
     #  gets rest of data from private method 'form' if name is entered, else aborts
     form(name)
-      
-      #  format results upon completion
-      goodbye  #  Formatting mixin
-      puts "There are now ".blue + "#{ @students.count }".bold.blue + " students in the #{@month} cohort:".blue
-      puts " "
-      self.student_profiles
+    #  format results upon completion
+    goodbye  #  Formatting mixin
+    puts "There are now ".blue + "#{ @students.count }".bold.blue + " students in the #{@month} cohort:".blue
+    puts " "
+    self.student_profiles
   end
 
   #  add one or multiple students to cohort (within editor)
@@ -441,7 +439,7 @@ class Cohort
     #  merge validation and assignment into one step as new student has no data to mutate
     new_student.age = validate_age(new_student, new_age)  #  Validation mixin
     #  sets off 'kill form' chain if user enters 'R'
-    (back_arrows; new_student.age = false) if new_student.age.upcase == 'R'
+    (back_arrows; new_student.age = false) if ['R', 'r'].include?(new_student.age)
     return if new_student.age == false
     new_student.age = new_student.age.to_f.round  # round stray decimals
   end
@@ -453,7 +451,7 @@ class Cohort
     print "#{ new_student.name }'s gender".yellow + ": "
     new_gender = gets.chomp.upcase
     new_student.gender = validate_gender(new_student, new_gender)
-    (back_arrows; new_student.gender = false) if new_student.gender.upcase == 'R'
+    (back_arrows; new_student.gender = false) if ['R', 'r'].include?(new_student.gender)
   end
 
   def enter_height(new_student)
@@ -463,7 +461,7 @@ class Cohort
     print "#{ new_student.name }'s height".yellow + ": "
     new_height = gets.chomp
     new_student.height = validate_height(new_student, new_height)
-    (back_arrows; new_student.height = false) if new_student.height.upcase == 'R'
+    (back_arrows; new_student.height = false) if ['R', 'r'].include?(new_student.height)
     return if new_student.height == false
     new_student.height = new_student.height.to_f.round(2)  #  round to 1 decimal place
   end
@@ -475,7 +473,7 @@ class Cohort
     print ("#{ new_student.name }'s country of birth").blue + ": "
     new_country_of_birth = gets.chomp.capitalize_each
     new_student.country_of_birth = validate_country_of_birth(new_student, new_country_of_birth)
-    (back_arrows; new_student.country_of_birth = false) if new_student.country_of_birth.upcase == 'R'
+    (back_arrows; new_student.country_of_birth = false) if ['R', 'r'].include?(new_student.country_of_birth)
   end
 
   def enter_disability_status(new_student)
@@ -485,7 +483,8 @@ class Cohort
     print "#{ new_student.name }'s disability status".yellow + ": "
     new_disability_status = gets.chomp.downcase
     new_student.is_disabled = validate_disability_status(new_student, new_disability_status)
-    (back_arrows; new_student.is_disabled = false) if new_student.is_disabled.upcase == 'R'
+    (back_arrows; new_student.is_disabled = false) if ['R', 'r'].include?(new_student.is_disabled)
+    new_student.registered = true
   end
 
   def form(name)
@@ -527,7 +526,6 @@ class Cohort
 
       # get another name from the user
       name = gets.chomp
-      name != "" ? form(name) : return
     end
     return false
   end
@@ -538,7 +536,7 @@ class Student
   include Formatting
   include Validation
   attr_accessor :name, :age, :gender, :height, :country_of_birth,
-                :is_disabled, :cohort, :student_id
+                :is_disabled, :cohort, :student_id, :registered
 
   def initialize(name, args={})
     options = defaults.merge(args)
@@ -550,7 +548,7 @@ class Student
     @country_of_birth = options.fetch(:country_of_birth)
     @is_disabled = options.fetch(:is_disabled)
     @cohort  #  assigned upon addition to cohort
-
+    @registered = false
     #  uses luhns algorithm to assign a 'valid' zero-padded ID
     random_num = rand(10000000)
     random_id = "0" * (7 - random_num.to_s.length) + random_num.to_s
