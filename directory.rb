@@ -561,8 +561,8 @@ class Cohort
     end
     #  displays suggestions if any
     if possible_valid.length > 0
-      puts "Did you mean:"
-      puts possible_valid
+      puts "Did you mean:".italic
+      possible_valid.each { |country| puts country.italic }
     else
       puts "(no matches for entry)"
     end
@@ -704,6 +704,60 @@ class Student
   end
 end
 
+def interface(villains_academy)
+  
+  puts "Welcome"
+  puts "Please choose an option:"
+  
+  puts "1) View all students"
+  puts "2) View all Cohorts"
+  puts "3) Add a student"
+  puts "4) Add a cohort"
+  puts "5) Delete a student"
+  puts "6) Filter students (Cohort Level)"
+  puts "7) Filter students (All)"
+  puts "type 'end' to save and exit"
+  #  gets user choice
+  choice = gets.chomp
+
+  #  skips if user types end
+  until choice.downcase == "end"
+    choice.to_i
+    until [1, 2, 3, 4, 5, 6, 7].include?(choice)
+      puts "invalid.."
+      choice = gets.chomp.to_i
+    end
+
+    case choice
+    when 1
+      villains_academy.all_cohorts
+    when 2
+      puts "CHOICE"
+    when 3
+      puts "CHOICE"
+    when 4
+      puts "CHOICE"
+    when 5
+      puts "CHOICE"
+    when 6
+      puts "CHOICE"
+    when 7
+      puts "CHOICE"
+    end
+    puts "Please choose an option:"
+    
+    puts "1) View all students"
+    puts "2) View all Cohorts"
+    puts "3) Add a student"
+    puts "4) Add a cohort"
+    puts "5) Delete a student"
+    puts "6) Filter students (Cohort Level)"
+    puts "7) Filter students (All)"
+    puts "type 'end' to save and exit"
+    choice = gets.chomp
+  end
+end
+
 #############################################################################################################
 
 # general testing
@@ -728,6 +782,8 @@ villains_academy = Academy.new("Villains Academy")
 #  create "Villains Academy" November Cohort object
 va_november = Cohort.new("November")
 
+interface(villains_academy)
+raise "done"
 #  add some Student objects to "Villains Academy" Cohort object
 va_november.add_student(sam, vader, hannibal, nurse_ratched, 
                         michael_corleone, alex_delarge)
