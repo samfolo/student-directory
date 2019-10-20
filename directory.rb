@@ -245,13 +245,13 @@ class Academy
   def all_students
     print_header
     i = 0
-    #  prints all students from all cohorts in one 
+    #  prints all students from all cohorts in one table
     @cohorts.each { |cohort|
-      cohort.students.each {|student|
-      puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + 
-      "ID: #{ student.student_id }".ljust(24) +
-      "(#{ student.cohort } cohort)".rjust(18)
-      i += 1
+      cohort.students.each { |student|
+        puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + 
+        "ID: #{ student.student_id }".ljust(24) +
+        "(#{ student.cohort } cohort)".rjust(18)
+        i += 1
       }
     }
     print_footer
@@ -794,7 +794,7 @@ def interface(academy)
       puts "(press return to go back to menu)"
       yesno = gets.chomp.upcase
       until ["Y", "N"].include?(yesno)
-        puts "Invalid Entry. Please enter 'Y' or 'N'"
+        puts "Invalid Entry. Please enter 'Y' or 'N' to confirm"
         puts "(press return to go back to menu)"
         yesno = gets.chomp.upcase
       end
@@ -802,9 +802,38 @@ def interface(academy)
         puts "Displaying all existing students.."
         academy.all_students
       end
-      puts "Enter the ID of the student you would like to delete"
-      delete_with_id = gets.chomp
-
+      sure = ""  #  repeat until user is sure of deletion
+      until sure == "Y"
+        puts "Enter the ID of the student you would like to delete"
+        puts "(press 'return' to go back to menu)"
+        all_ids = []
+        all_profiles = []
+        #  get all profiles and ids in two seperate arrays
+        academy.cohorts.each { |cohort|
+          cohort.students.each { |student|
+            all_ids.push(student.student_id)
+            all_profiles.push(student)
+          }
+        }
+        #  get an ID, keeps asking until ID is valid
+        to_delete = gets.chomp
+        until all_ids.include?(to_delete)
+          puts "Invalid. Please enter a valid ID"
+          puts "(press 'return' to go back to menu)"
+          to_delete = gets.chomp
+        end
+        #  finds student with chosen ID
+        selected_student = all_profiles.select { |profile|
+          profile.name if profile.student_id == to_delete
+        }[0]
+        puts "You are about to remove Student ID: #{ to_delete } (#{ selected_student.name })"
+        puts "Are you sure?"
+        sure = gets.chomp.upcase
+        until ["Y", "N"].include?(sure)
+          puts "Please enter 'Y' or 'N' to confirm"
+          sure = gets.chomp.upcase
+        end
+    end
     when 6
       puts "CHOICE"
     when 7
