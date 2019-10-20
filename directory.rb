@@ -228,6 +228,8 @@ class Academy
     entries.each { |entry| 
       (entry.academy = @name; @cohorts.push(entry)) if entry.is_a?(Cohort)
     }
+    puts "Done.. Style this!"
+    @cohorts.each { |cohort| puts cohort.month }
   end
 
   def total_students
@@ -719,50 +721,73 @@ class Student
   end
 end
 
-def interface(villains_academy)
-  
+def interface(academy)
+  include Formatting
+  include Validation
   puts "Welcome"
   puts "Please choose an option:"
   
-  puts "1) View all students"
-  puts "2) View all Cohorts"
-  puts "3) Add a student"
-  puts "4) Add a cohort"
-  puts "5) Delete a student"
+  puts "1) Display all students in #{ academy.name }"
+  puts "2) View all Cohorts in #{ academy.name }"
+  puts "3) Add a student to a specific cohort"
+  puts "4) Add a cohort to #{ academy.name }"
+  puts "5) Delete a student from a cohort"
   puts "6) Filter students (Cohort Level)"
   puts "7) Filter students (All)"
   puts "type 'end' to save and exit"
-  #  gets user choice
+  #  get user choice
   choice = gets.chomp
 
-  #  skips if user types end
+  #  skip if user types end
   until choice.downcase == "end"
     choice = choice.to_i
-    until [1, 2, 3, 4, 5, 6, 7].include?(choice)
+    until (1..7).to_a.include?(choice)
       puts "invalid.."
       choice = gets.chomp.to_i
     end
 
     case choice
     when 1
-      villains_academy.all_students
+      puts "Displaying all students.."
+      academy.all_students
     when 2
-      villains_academy.all_cohorts
+      puts "Displaying all cohorts.."
+      academy.all_cohorts
     when 3
       puts "Which cohort would you like to add a student to?"
       #  puts list of existing cohorts (currently order insensitive)
-      villains_academy.cohorts.each { |cohort| puts cohort.month }
+      academy.cohorts.each { |cohort| puts cohort.month }
       cohort_choice = gets.chomp
-      #  begins adding a student to the user choice of cohort
-      villains_academy.cohorts.select { |cohort|
+      #  begin adding a student to the user choice of cohort
+      academy.cohorts.select { |cohort|
         cohort.month == cohort_choice }[0].input_student
-      # puts villains_academy.cohorts[]# .input_student
     when 4
-      puts "CHOICE"
-      new_cohort = gets.chomp
-      villains_academy.add_cohort(new_cohort)
+      puts "Creating a new cohort.."
+      existing_cohorts = []
+      academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month)}
+      puts "Enter a valid month to create a new cohort."
+      new_month = gets.chomp
+      #  check if entry is a valid month (validation mixin) 
+      #  and if cohort already exists
+      until actual_months.include?(new_month.downcase.to_sym) && 
+            !existing_cohorts.include?(new_month.capitalize)
+        if existing_cohorts.include?(new_month.capitalize_each)
+          puts "A #{ new_month } Cohort already exists"
+          puts "Enter a different month to create a new Cohort"
+          puts "(press return to go back to menu)"
+          new_month = gets.chomp
+        else
+          puts "Invalid month.  Enter a valid month to create a new Cohort"
+          puts "(press return to go back to menu)"
+          new_month = gets.chomp
+        end
+      end
+      #  create new cohort and add it to the academy
+      new_cohort = Cohort.new(new_month.capitalize)
+      academy.add_cohort(new_cohort)  #  capitalizes within the method
     when 5
       puts "CHOICE"
+      
     when 6
       puts "CHOICE"
     when 7
