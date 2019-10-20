@@ -183,6 +183,7 @@ module Validation
       puts short_bar
       puts "Invalid entry"
       puts "#{ country_of_birth } is not a country"
+      did_you_mean?(country_of_birth)
       puts ("Please enter #{ student.name }'s country of birth").blue
       abort?
       print student.country_of_birth == "N/A" ? "#{ student.name }'s country of birth".yellow + ": " : 
@@ -284,7 +285,7 @@ class Cohort
   def initialize(month)
     @academy
     if actual_months.include?(month.downcase.to_sym)
-    @month = month.capitalize
+      @month = month.capitalize
     else
       raise "Error: #{month} is not a month."
     end
@@ -523,7 +524,8 @@ class Cohort
       break if new_student.is_disabled == false
       print "* VALID *\n".bold.green
       
-      #  add the student hash to the array
+      #  add the Student object to the list of students 
+      #  if student is successfully registered
       @students << new_student
       puts " "
       puts " "
@@ -539,6 +541,31 @@ class Cohort
       name = gets.chomp
     end
     return false
+  end
+
+  def did_you_mean?(country)
+    #  naive search..?
+    possible_valid = []
+    entry_letters = country.downcase
+    #  matches invalid entry to possible valid entries
+    puts "Match first #{ (entry_letters.length / 3).to_i } letters..."
+    char = entry_letters.length
+    #  until a suggestion is found it removes one letter from the end of the invalid entry
+    until possible_valid.length > 0 || char == 0
+      actual_countries.each { |country|
+        possible_valid.push(country.to_s.capitalize_each) if 
+        entry_letters.downcase[0..char] == 
+        country.to_s[0..char]
+      }
+      char -= 1
+    end
+    #  displays suggestions if any
+    if possible_valid.length > 0
+      puts "Did you mean:"
+      puts possible_valid
+    else
+      puts "(no matches for entry)"
+    end
   end
 end
 
