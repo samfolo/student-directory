@@ -242,6 +242,21 @@ class Academy
     print_footer
   end
 
+  def all_students
+    print_header
+    i = 0
+    #  prints all students from all cohorts in one 
+    @cohorts.each { |cohort|
+      cohort.students.each {|student|
+      puts "#{ (i + 1).to_s.ljust(12) }#{ student.name.ljust(40) }" + 
+      "ID: #{ student.student_id }".ljust(24) +
+      "(#{ student.cohort } cohort)".rjust(18)
+      i += 1
+      }
+    }
+    print_footer
+  end
+
   private
 
   #  header of table
@@ -722,7 +737,7 @@ def interface(villains_academy)
 
   #  skips if user types end
   until choice.downcase == "end"
-    choice.to_i
+    choice = choice.to_i
     until [1, 2, 3, 4, 5, 6, 7].include?(choice)
       puts "invalid.."
       choice = gets.chomp.to_i
@@ -730,13 +745,22 @@ def interface(villains_academy)
 
     case choice
     when 1
-      villains_academy.all_cohorts
+      villains_academy.all_students
     when 2
-      puts "CHOICE"
+      villains_academy.all_cohorts
     when 3
-      puts "CHOICE"
+      puts "Which cohort would you like to add a student to?"
+      #  puts list of existing cohorts (currently order insensitive)
+      villains_academy.cohorts.each { |cohort| puts cohort.month }
+      cohort_choice = gets.chomp
+      #  begins adding a student to the user choice of cohort
+      villains_academy.cohorts.select { |cohort|
+        cohort.month == cohort_choice }[0].input_student
+      # puts villains_academy.cohorts[]# .input_student
     when 4
       puts "CHOICE"
+      new_cohort = gets.chomp
+      villains_academy.add_cohort(new_cohort)
     when 5
       puts "CHOICE"
     when 6
@@ -782,12 +806,19 @@ villains_academy = Academy.new("Villains Academy")
 #  create "Villains Academy" November Cohort object
 va_november = Cohort.new("November")
 
-interface(villains_academy)
-raise "done"
 #  add some Student objects to "Villains Academy" Cohort object
 va_november.add_student(sam, vader, hannibal, nurse_ratched, 
                         michael_corleone, alex_delarge)
 
+va_december = Cohort.new("December")
+
+va_december.add_student(wicked_witch, terminator, freddy_krueger, 
+                        joker, joffrey, norman_bates)
+
+villains_academy.add_cohort(va_november, va_december)
+
+interface(villains_academy)
+raise "done"
 #  test methods in CLI
 va_november.roster
 
@@ -800,10 +831,7 @@ va_november.input_student
 ##va_november.by_length(10)
 
 #  create "Villains Academy" December Cohort object
-va_december = Cohort.new("December")
 
-va_december.add_student(wicked_witch, terminator, freddy_krueger, 
-                        joker, joffrey, norman_bates)
 
 va_december.roster
 
@@ -815,7 +843,7 @@ va_december.roster
 ##puts " "
 ##va_december.by_length(7)
 
-villains_academy.add_cohort(va_november, va_december)
+
 
 #  testing delete fuction
 
