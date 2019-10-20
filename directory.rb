@@ -228,8 +228,6 @@ class Academy
     entries.each { |entry| 
       (entry.academy = @name; @cohorts.push(entry)) if entry.is_a?(Cohort)
     }
-    puts "Done.. Style this!"
-    @cohorts.each { |cohort| puts cohort.month }
   end
 
   def total_students
@@ -606,10 +604,10 @@ class Student
     @registered = false
     #  use luhns algorithm to assign a 'valid' zero-padded ID
     random_num = rand(10000000)
-    random_id = "0" * (7 - random_num.to_s.length) + random_num.to_s
+    random_id = random_num.to_s.rjust(7, "0")
     until luhns_seven(random_id) == true
       random_num = rand(10000000)
-      random_id = "0" * (7 - random_num.to_s.length) + random_num.to_s
+      random_id = random_num.to_s.rjust(7, "0")
     end
     @student_id = random_id
   end
@@ -754,7 +752,9 @@ def interface(academy)
       puts "Displaying all cohorts.."
       academy.all_cohorts
     when 3
-      puts "Which cohort would you like to add a student to?"
+      puts "Adding a new student.."
+      puts "Which cohort would you like to add this student to?"
+      puts "(press return to go back to menu)"
       #  puts list of existing cohorts (currently order insensitive)
       academy.cohorts.each { |cohort| puts cohort.month }
       cohort_choice = gets.chomp
@@ -766,6 +766,7 @@ def interface(academy)
       existing_cohorts = []
       academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month)}
       puts "Enter a valid month to create a new cohort."
+      puts "(press return to go back to menu)"
       new_month = gets.chomp
       #  check if entry is a valid month (validation mixin) 
       #  and if cohort already exists
@@ -785,9 +786,25 @@ def interface(academy)
       #  create new cohort and add it to the academy
       new_cohort = Cohort.new(new_month.capitalize)
       academy.add_cohort(new_cohort)  #  capitalizes within the method
+      puts "Done.. Style this!"
+      academy.cohorts.each { |cohort| puts cohort.month }
     when 5
-      puts "CHOICE"
-      
+      puts "Deleting a student.."
+      puts "Do you have the student's ID at hand? ( Y / N )"
+      puts "(press return to go back to menu)"
+      yesno = gets.chomp.upcase
+      until ["Y", "N"].include?(yesno)
+        puts "Invalid Entry. Please enter 'Y' or 'N'"
+        puts "(press return to go back to menu)"
+        yesno = gets.chomp.upcase
+      end
+      if yesno == "N"
+        puts "Displaying all existing students.."
+        academy.all_students
+      end
+      puts "Enter the ID of the student you would like to delete"
+      delete_with_id = gets.chomp
+
     when 6
       puts "CHOICE"
     when 7
