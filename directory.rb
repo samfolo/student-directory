@@ -51,9 +51,10 @@ module Formatting
   end
 
   def back_arrows
-      puts ("<" * 53).bold.yellow
-      puts "RESTARTING FORM".center(53).yellow
-      puts ("<" * 53).bold.yellow
+      puts short_bar
+      puts ("/" * 53).bold.yellow
+      puts "ABORTING STUDENT ENTRY".center(53).yellow
+      puts ("/" * 53).bold.yellow
       puts short_bar
   end
 
@@ -69,8 +70,8 @@ module Formatting
     puts ("+" * 53).bold.green
   end
 
-  def restart?
-    puts "(type 'R' to restart student entry)"
+  def abort?
+    puts "(type 'R' to abort)"
   end
 
   def goodbye
@@ -129,8 +130,9 @@ module Validation
       puts "Invalid entry"
       puts ("Please enter #{ student.name }'s age").blue
       puts "(Applicants must be at least 5 and at most 130 years of age)".blue
-      restart?
-      print student.age == "N/A" ? "#{ student.name.upcase }'s age".yellow + ": " : "#{ student.name.upcase }'s actual age".yellow + ": "
+      abort?
+      print student.age == "N/A" ? "#{ student.name }'s age".yellow + ": " : 
+                                   "#{ student.name }'s actual age".yellow + ": "
       age = gets.chomp
     end
     age
@@ -143,26 +145,33 @@ module Validation
       puts "Invalid entry"
       puts ("Please choose #{ student.name }'s gender").blue
       puts "(".blue + "M" + ") Male / (".blue + "F" + ") Female / (".blue + "NB" + ") Non-Binary / (".blue + "O" + ") Other / Prefer not to say".blue
-      restart?
-      print student.gender == "N/A" ? "#{ student.name }'s gender".yellow + ": " : "#{ student.name }'s actual gender".yellow + ": "
+      abort?
+      print student.gender == "N/A" ? "#{ student.name }'s gender".yellow + ": " : 
+                                      "#{ student.name }'s actual gender".yellow + ": "
       gender = /[a-zA-Z]/.match(gender) ? gets.chomp : gets.chomp.upcase!
     end
     gender
   end
 
   def validate_height(student, height)
-    until height.to_i > 0 && height.to_i < 300 || ['R', 'r'].include?(height)
+    until height.to_i >= 50 && height.to_i < 300 || ['R', 'r'].include?(height)
       puts "* INVALID *".bold.red
       puts short_bar
-      if height.to_i > 0
+      if height.to_i >= 300
+        puts "Invalid entry"
         puts "Due to the events of last year we no longer accept giants to Villains Academy.".blue
+        puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
+      elsif height.to_i < 50 && height.to_i != 0  #  because non-digits.to_i return 0
+        puts "Invalid entry"
+        puts "Student is too short to be a villain.  Minimum height requirement is 50cm.".blue
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
       else
         puts "Invalid entry"
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
       end
-      restart?
-      print student.height == "N/A" ? "#{ student.name }'s height".yellow + ": " : "#{ student.name }'s actual height".yellow + ": "
+      abort?
+      print student.height == "N/A" ? "#{ student.name }'s height".yellow + ": " : 
+                                      "#{ student.name }'s actual height".yellow + ": "
       height = gets.chomp
     end
     height
@@ -175,8 +184,9 @@ module Validation
       puts "Invalid entry"
       puts "#{ country_of_birth } is not a country"
       puts ("Please enter #{ student.name }'s country of birth").blue
-      restart?
-      print student.country_of_birth == "N/A" ? "#{ student.name }'s country of birth".yellow + ": " : "#{ student.name }'s actual country of birth".yellow + ": "
+      abort?
+      print student.country_of_birth == "N/A" ? "#{ student.name }'s country of birth".yellow + ": " : 
+                                                "#{ student.name }'s actual country of birth".yellow + ": "
       country_of_birth = gets.chomp.capitalize_each
     end
     country_of_birth
@@ -188,8 +198,9 @@ module Validation
       puts short_bar
       puts "Invalid entry"
       puts ("Please enter #{ student.name }'s disability status (").blue + " true " + "/".blue + " false " + ")".blue
-      restart?
-      print student.is_disabled == "N/A" ? ("#{ student.name }'s disability status").yellow + ": " : "#{ student.name }'s actual disability status".yellow + ": "
+      abort?
+      print student.is_disabled == "N/A" ? ("#{ student.name }'s disability status").yellow + ": " : 
+                                            "#{ student.name }'s actual disability status".yellow + ": "
       disability_status = gets.chomp.downcase
     end
     disability_status
@@ -431,10 +442,10 @@ class Cohort
 
   def enter_age(new_student)
     puts short_bar
-    puts ("Please enter #{ new_student.name }'s age").blue
+    puts ("Please enter #{ new_student.name.capitalize_each }'s age").blue
     puts "(Applicants must be at least 5 and at most 130 years of age)".blue
-    restart?
-    print "#{ new_student.name }'s age".yellow + ": "
+    abort?
+    print "#{ new_student.name.capitalize_each }'s age".yellow + ": "
     new_age = gets.chomp
     #  merge validation and assignment into one step as new student has no data to mutate
     new_student.age = validate_age(new_student, new_age)  #  Validation mixin
@@ -446,19 +457,19 @@ class Cohort
 
   def enter_gender(new_student)
     puts short_bar
-    puts ("Please enter #{ new_student.name }'s gender (").blue + " M " + "/".blue + " F " + "/".blue + " NB " + "/".blue + " O " + ")".blue
-    restart?
-    print "#{ new_student.name }'s gender".yellow + ": "
+    puts ("Please enter #{ new_student.name.capitalize_each }'s gender (").blue + " M " + "/".blue + " F " + "/".blue + " NB " + "/".blue + " O " + ")".blue
+    abort?
+    print "#{ new_student.name.capitalize_each }'s gender".yellow + ": "
     new_gender = gets.chomp.upcase
-    new_student.gender = validate_gender(new_student, new_gender)
+    new_student.gender = validate_gender(new_student, new_gender).upcase
     (back_arrows; new_student.gender = false) if ['R', 'r'].include?(new_student.gender)
   end
 
   def enter_height(new_student)
     puts short_bar
-    puts ("Please enter #{ new_student.name }'s height (").blue + "in centimeters" + ")".blue
-    restart?
-    print "#{ new_student.name }'s height".yellow + ": "
+    puts ("Please enter #{ new_student.name.capitalize_each }'s height (").blue + "in centimeters" + ")".blue
+    abort?
+    print "#{ new_student.name.capitalize_each }'s height".yellow + ": "
     new_height = gets.chomp
     new_student.height = validate_height(new_student, new_height)
     (back_arrows; new_student.height = false) if ['R', 'r'].include?(new_student.height)
@@ -468,9 +479,9 @@ class Cohort
 
   def enter_country_of_birth(new_student)
     puts short_bar
-    puts ("Please enter #{ new_student.name }'s country of birth").blue
-    restart?
-    print ("#{ new_student.name }'s country of birth").blue + ": "
+    puts ("Please enter #{ new_student.name.capitalize_each }'s country of birth").blue
+    abort?
+    print ("#{ new_student.name.capitalize_each }'s country of birth").blue + ": "
     new_country_of_birth = gets.chomp.capitalize_each
     new_student.country_of_birth = validate_country_of_birth(new_student, new_country_of_birth)
     (back_arrows; new_student.country_of_birth = false) if ['R', 'r'].include?(new_student.country_of_birth)
@@ -478,9 +489,9 @@ class Cohort
 
   def enter_disability_status(new_student)
     puts short_bar
-    puts ("Please enter #{ new_student.name }'s disability status (").blue + " true " + "/".blue + " false " + ")".blue
-    restart?
-    print "#{ new_student.name }'s disability status".yellow + ": "
+    puts ("Please enter #{ new_student.name.capitalize_each }'s disability status (").blue + " true " + "/".blue + " false " + ")".blue
+    abort?
+    print "#{ new_student.name.capitalize_each }'s disability status".yellow + ": "
     new_disability_status = gets.chomp.downcase
     new_student.is_disabled = validate_disability_status(new_student, new_disability_status)
     (back_arrows; new_student.is_disabled = false) if ['R', 'r'].include?(new_student.is_disabled)
@@ -549,7 +560,7 @@ class Student
     @is_disabled = options.fetch(:is_disabled)
     @cohort  #  assigned upon addition to cohort
     @registered = false
-    #  uses luhns algorithm to assign a 'valid' zero-padded ID
+    #  use luhns algorithm to assign a 'valid' zero-padded ID
     random_num = rand(10000000)
     random_id = "0" * (7 - random_num.to_s.length) + random_num.to_s
     until luhns_seven(random_id) == true
@@ -615,17 +626,23 @@ class Student
 
     #  exit edit mode if user types 'R'
     if number.downcase == 'r'
-    puts "Done.  Current state of #{ self.name}'s profile:".green
+    puts "Done.  Current state of #{ self.name }'s profile:".green
     (self.quick_facts; exit_edit_mode; goodbye; return)
     end
 
     #  edit data for choice (using Validation mixin)
-    puts "Editing #{self.name}'s #{data.keys[number.to_i - 1].downcase}"
+    puts "Editing #{ self.name }'s #{ data.keys[number.to_i - 1].downcase }"
     case number
     when "1"
       print "Actual name".yellow + ": "
       entry = gets.chomp
-      data[number] = entry
+      puts "Are you sure? ( Y / N )"
+      verify = gets.chomp
+      until ["Y", "y", "N", "n"].include?(verify)
+      puts "Please enter ( Y / N ) to confirm or abort"
+      verify = gets.chomp
+      end
+      self.name = entry.capitalize_each if ["Y", "y"].include?(verify)
     when "2"
       print "#{ self.name }'s actual age".yellow + ": "
       new_age = gets.chomp
@@ -653,6 +670,7 @@ class Student
       updated_disability_status = validate_disability_status(self, new_disability_status)
       self.is_disabled = updated_disability_status.upcase == 'R' ? self.is_disabled : updated_disability_status
     end
+    puts short_bar
     puts "Done.  Current state of #{ self.name}'s profile".yellow + ":"
     self.quick_facts
     exit_edit_mode
