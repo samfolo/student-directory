@@ -336,22 +336,23 @@ class Cohort
     length_before = @students.length
 
     valid = []
-
     #  seperates valid entries from invalid entries
     entries.each { |entry| 
       @students.each { |student|
-        valid.push(student) if student == entry 
+        (valid.push(student); entries.delete_at(entries.index(student))) if student == entry
       }
     }
 
     #  deletes target students
     valid.each { |entry| 
-      @students.delete_at(@students.find_index(entry))
+      @students.delete_at(@students.index(entry))
     }
 
     #  displays remaining (invalid) entries
-    if valid.length != entries.length
-    invalid = entries.reject { |entry| valid.include?(entry) }
+    if entries.length == 0
+      #  do nothing
+    elsif valid.length != entries.length
+    invalid = entries
     puts "invalid Entries: #{invalid.length}".bold.blue
     invalid.each { |entry| puts "#{entry.name}: #{entry.student_id}" }
     end
@@ -824,16 +825,24 @@ def interface(academy)
         end
         #  finds student with chosen ID
         selected_student = all_profiles.select { |profile|
-          profile.name if profile.student_id == to_delete
+          profile if profile.student_id == to_delete
         }[0]
         puts "You are about to remove Student ID: #{ to_delete } (#{ selected_student.name })"
-        puts "Are you sure?"
+        puts "Are you sure? ( Y / N )"
         sure = gets.chomp.upcase
         until ["Y", "N"].include?(sure)
           puts "Please enter 'Y' or 'N' to confirm"
           sure = gets.chomp.upcase
         end
-    end
+        if sure == "Y"
+          academy.cohorts.each { |cohort|
+            cohort.students.each { |student|
+              cohort.delete_student(student) if student == selected_student
+            }
+          }
+          academy.all_cohorts
+        end
+      end
     when 6
       puts "CHOICE"
     when 7
