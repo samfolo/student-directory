@@ -741,9 +741,8 @@ def interface(academy)
   puts "8) Move Student to another Cohort"
   puts "9) Student profiles (Cohort Level)"
   puts "10) Student profiles (All)"
-  puts "11) Move Student"
-  puts "12) Edit Student"
-  puts "13) Delete Cohort...?"
+  puts "11) Edit Student"
+  puts "12) Delete Cohort...?"
   puts "type 'end' to save and exit"
   #  get user choice
   choice = gets.chomp
@@ -751,7 +750,7 @@ def interface(academy)
   #  skip if user types end
   until choice.downcase == "end"
     choice = choice.to_i
-    until (1..8).to_a.include?(choice)
+    until (1..10).to_a.include?(choice)
       puts "invalid.."
       choice = gets.chomp.to_i
     end
@@ -1045,6 +1044,37 @@ def interface(academy)
           academy.all_cohorts
         end
       end
+    
+    when 9
+      puts "Displaying all #{ academy.name } student profiles by cohort.."
+      puts " "
+      i = 0
+      academy.cohorts.each { |cohort| 
+        puts "#{ cohort.month }:"
+        puts " "
+        cohort.students.each.with_index { |student, i| 
+          puts "#{ i+1 })".bold.yellow
+          student.quick_facts 
+          i += 1
+        }
+        puts " "
+      }
+
+    when 10
+      puts "Displaying all #{ academy.name } student profiles for #{ academy.name }.."
+      puts " "
+      i = 0
+      academy.cohorts.each { |cohort| 
+        cohort.students.each { |student| 
+          puts "#{ i+1 })".bold.yellow
+          student.quick_facts 
+          i += 1
+        }
+        puts " "
+      }
+
+    when 11
+      
     end
 
   
@@ -1060,9 +1090,8 @@ def interface(academy)
     puts "8) Move Student to another Cohort"
     puts "9) Student profiles (Cohort Level)"
     puts "10) Student profiles (All)"
-    puts "11) Move Student"
-    puts "12) Edit Student"
-    puts "13) Delete Cohort...?"
+    puts "11) Edit Student"
+    puts "12) Delete Cohort...?"
     puts "type 'end' to save and exit"
     choice = gets.chomp
   end
@@ -1091,38 +1120,41 @@ norman_bates = Student.new("Norman Bates")
 #  create "Villains Academy" Academy object
 villains_academy = Academy.new("Villains Academy")
 
-#  create "Villains Academy" November Cohort object
+#  create "Villains Academy" November Cohort
 va_november = Cohort.new("November")
 
-#  add some Student objects to "Villains Academy" Cohort object
+#  add some Student objects to "Villains Academy" November
 va_november.add_student(sam, vader, hannibal, nurse_ratched, 
                         michael_corleone, alex_delarge)
 
+#  create "Villains Academy" December Cohort     
 va_december = Cohort.new("December")
 
+#  add some Student objects to "Villains Academy" December
 va_december.add_student(wicked_witch, terminator, freddy_krueger, 
                         joker, joffrey, norman_bates)
 
+#  add Cohorts to Academy
 villains_academy.add_cohort(va_november, va_december)
 
+#  start session
 interface(villains_academy)
 raise "done"
-#  test methods in CLI
-va_november.roster
 
-va_november.input_student
+
+#  test methods in CLI
+##va_november.roster
+##puts " "
+##va_november.input_student
 ##puts " "
 ##va_november.roster
 ##puts " "
 ##va_november.by_initial("W")
 ##puts " "
 ##va_november.by_length(10)
-
-#  create "Villains Academy" December Cohort object
-
-
-va_december.roster
-
+##puts " "
+##va_december.roster
+##puts " "
 ##va_december.input_student
 ##puts " "
 ##va_december.roster
@@ -1131,19 +1163,14 @@ va_december.roster
 ##puts " "
 ##va_december.by_length(7)
 
-
-
 #  testing delete fuction
-
 ##va_november.delete_student(alex_delarge)
 ##va_december.delete_student(joffrey, terminator)
 ##villains_academy.all_cohorts
 
 #  testing student migration
-
-va_november.move_student(sam, va_december)
-villains_academy.all_cohorts
+##va_november.move_student(sam, va_december)
+##villains_academy.all_cohorts
 
 #  testing edit student
-
-sam.edit_student
+##sam.edit_student
