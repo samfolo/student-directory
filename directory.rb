@@ -564,7 +564,6 @@ class Cohort
     possible_valid = []
     entry_letters = country.downcase
     #  matches invalid entry to possible valid entries
-    puts "Match first #{ (entry_letters.length / 3).to_i } letters..."
     char = entry_letters.length
     #  until a suggestion is found it removes one letter from the end of the invalid entry
     until possible_valid.length > 0 || char == 0
@@ -580,7 +579,7 @@ class Cohort
       puts "Did you mean:".italic
       possible_valid.each { |country| puts country.italic }
     else
-      puts "(no matches for entry)"
+      puts "(no matches for entry)".italic
     end
   end
 end
@@ -745,13 +744,19 @@ def interface(academy)
       choice = gets.chomp.to_i
     end
 
+    #  document the months which already have cohorts
+    existing_cohorts = []
+    academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month) }
+
     case choice
     when 1
       puts "Displaying all students.."
       academy.all_students
+
     when 2
       puts "Displaying all cohorts.."
       academy.all_cohorts
+
     when 3
       puts "Adding a new student.."
       puts "Which cohort would you like to add this student to?"
@@ -759,17 +764,22 @@ def interface(academy)
       #  puts list of existing cohorts (currently order insensitive)
       academy.cohorts.each { |cohort| puts cohort.month }
       cohort_choice = gets.chomp.capitalize
+      until existing_cohorts.include?(cohort_choice)
+        puts "Invalid entry. Please enter an existing cohort"
+        puts "(press return to go back to menu)"
+        academy.cohorts.each { |cohort| puts cohort.month }
+        cohort_choice = gets.chomp.capitalize
+      end
       #  begin adding a student to the user choice of cohort
       academy.cohorts.select { |cohort|
         cohort.month == cohort_choice }[0].input_student
+      
     when 4
       puts "Creating a new cohort.."
-      existing_cohorts = []
-      academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month) }
       puts "Enter a valid month to create a new cohort."
       puts "(press return to go back to menu)"
       new_month = gets.chomp
-      #  check if entry is a valid month (validation mixin) 
+      #  check if entry is a valid month (Validation mixin) 
       #  and if cohort already exists
       until actual_months.include?(new_month.downcase.to_sym) && 
             !existing_cohorts.include?(new_month.capitalize)
@@ -789,6 +799,7 @@ def interface(academy)
       academy.add_cohort(new_cohort)  #  capitalizes within the method
       puts "Done.. Style this!"
       academy.cohorts.each { |cohort| puts cohort.month }
+
     when 5
       puts "Deleting a student.."
       puts "Do you have the student's ID at hand? ( Y / N )"
@@ -843,14 +854,12 @@ def interface(academy)
           academy.all_cohorts
         end
       end
+
     when 6
       puts "Searching.."
       puts "Which cohort would you like to search?"
       puts "(press 'return' to go back to menu)"
       cohort_to_search = gets.chomp.capitalize
-
-      existing_cohorts = []
-      academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month) }
 
       until existing_cohorts.include?(cohort_to_search)
         puts "Invalid entry. Please enter a valid cohort"
@@ -861,25 +870,44 @@ def interface(academy)
       puts "Searching through #{ cohort_to_search } cohort.."
       puts "How would you like to filter results? (enter a number)"
       puts "1) Initial"
-      puts "2) Gender"
+      puts "2) Length"
       puts "(press 'return' to go back to menu)"
       filter_by = gets.chomp.to_i
       until (1..2).to_a.include?(filter_by)
         puts "Invalid option"
         puts "How would you like to filter results? (enter a number)"
         puts "1) Initial"
-        puts "2) Gender"
+        puts "2) Length"
         puts "(press 'return' to go back to menu)"
         filter_by = gets.chomp.to_i
       end
-      case filter_by
-      when 1
-        to_filter = academy.cohorts.select{ |cohort| 
+      filter_cohort = academy.cohorts.select{ |cohort| 
                       cohort if cohort.month == cohort_to_search 
                     }[0]
-        puts to_filter.by_initial("S")
-        #to_filter.students.by_intital("S")
+      case filter_by
+      when 1
+        puts "Enter an initial"
+        puts "(press 'return' to go back to menu)"
+        initial = gets.chomp.upcase
+        until initial.length == 1 && (/[a-zA-Z]/).match(initial)
+          puts "Invalid entry. Please enter a single letter"
+          puts "(press 'return' to go back to menu)"
+          initial = gets.chomp.upcase
+        end
+        filter_cohort.by_initial(initial)
+      when 2
+        puts "Enter a length limit (number)"
+        puts "(press 'return' to go back to menu)"
+        limit = gets.chomp.to_i
+        until limit > 0
+          puts "Invalid entry. Please enter a number"
+          puts "(press 'return' to go back to menu)"
+          limit = gets.chomp.to_i
+        end
+        filter_cohort.by_length(limit)
+
       end
+      
     when 7
       puts "CHOICE"
     end
@@ -895,6 +923,8 @@ def interface(academy)
     puts "type 'end' to save and exit"
     choice = gets.chomp
   end
+  puts short_bar
+  goodbye
 end
 
 #############################################################################################################
