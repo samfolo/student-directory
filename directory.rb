@@ -263,7 +263,7 @@ class Academy
   def print_header
     puts long_bar.blue
     print ("|" * 23).blue, "The Students of Villains Academy".center(48), ("|" * 23).blue, "\n"
-    print ("|" * 23).blue, "==== All Cohorts ====".center(48), ("|" * 23).blue, "\n"
+    print ("|" * 23).blue, "==== All Students ====".center(48), ("|" * 23).blue, "\n"
     puts long_bar.blue
   end
 
@@ -731,9 +731,15 @@ def interface(academy)
   puts "2) View all Cohorts in #{ academy.name }"
   puts "3) Add a student to a specific cohort"
   puts "4) Add a cohort to #{ academy.name }"
-  puts "5) Delete a student from a cohort"
+  puts "5) Delete a student from a specific cohort"
   puts "6) Filter students (Cohort Level)"
   puts "7) Filter students (All)"
+  puts "8) Move Student to another Cohort"
+  puts "9) Student profiles (Cohort Level)"
+  puts "10) Student profiles (All)"
+  puts "11) Move Student"
+  puts "12) Edit Student"
+  puts "13) Delete Cohort...?"
   puts "type 'end' to save and exit"
   #  get user choice
   choice = gets.chomp
