@@ -520,7 +520,7 @@ class Cohort
     new_disability_status = gets.chomp.downcase
     new_student.is_disabled = validate_disability_status(new_student, new_disability_status)
     (back_arrows; new_student.is_disabled = false) if ['R', 'r'].include?(new_student.is_disabled)
-    new_student.registered = true
+    registered = true  #  form fully filled
   end
 
   def form(name)
@@ -609,7 +609,7 @@ class Student
     @country_of_birth = options.fetch(:country_of_birth)
     @is_disabled = options.fetch(:is_disabled)
     @cohort  #  assigned upon addition to cohort
-    @registered = false
+    @registered = true
     #  use luhns algorithm to assign a 'valid' zero-padded ID
     random_num = rand(10000000)
     random_id = random_num.to_s.rjust(7, "0")
@@ -749,7 +749,7 @@ def interface(academy)
   #  get user choice
   choice = gets.chomp
 
-  #  skip if user types end
+  #  exit if user types end
   until choice.downcase == "end"
     choice = choice.to_i
     until (1..12).to_a.include?(choice)
@@ -806,8 +806,8 @@ def interface(academy)
       #  and if cohort already exists
       until actual_months.include?(new_month.downcase.to_sym) && 
             !existing_cohorts.include?(new_month.capitalize)
-        if existing_cohorts.include?(new_month.capitalize_each)
-          puts "A #{ new_month } Cohort already exists"
+        if existing_cohorts.include?(new_month.capitalize)
+          puts "A #{ new_month.capitalize } Cohort already exists"
           puts "Enter a different month to create a new Cohort"
           puts "(press return to go back to menu)"
           new_month = gets.chomp
@@ -1079,13 +1079,15 @@ def interface(academy)
 
     when 11
       academy.all_students
+      puts "Editing a student.."
       puts "Which student would you like to edit? (enter an ID)"
       puts "(press return to go back to menu)"
-      student_choice = gets.chomp.capitalize_each
+      student_choice = gets.chomp
       student_to_edit = all_profiles.select { |student| student if student.student_id == student_choice }[0]
       until student_to_edit  #  exists
         puts "Invalid entry. Please enter a valid ID"
         puts "(press return to go back to menu)"
+        student_choice = gets.chomp
       end
       student_to_edit.edit_student
       #  repeat edit mode for student until user exits
@@ -1101,6 +1103,7 @@ def interface(academy)
         else
           puts "Invalid Entry. Please enter 'Y' or 'N' to confirm"
           puts "(press return to go back to menu)"
+          yesno = gets.chomp.upcase
         end
       end
 
@@ -1129,7 +1132,23 @@ def interface(academy)
           target_cohort = gets.chomp.capitalize
         end
         if confirm == "confirm"
-          puts "DOES IT"
+          #  find target cohort
+          selected_cohort = academy.cohorts.select { |cohort| cohort.month == target_cohort }[0]
+          #  collect all other target cohorts
+          other_cohorts = academy.cohorts.select { |cohort| cohort if cohort.month != target_cohort }
+          #  redistribute students:
+          #  delete cohort from academy (not serviced in redistribution)
+          academy.cohorts.delete_at(academy.cohorts.index(selected_cohort))
+          #  allocate one student to every other cohort in academy.cohorts array
+          i = 0
+          selected_cohort.students.each { |student| 
+            other_cohorts[i].students.push(student)
+            student.cohort = other_cohorts[i].month
+            i += 1
+            i = 0 if i == other_cohorts.length
+          }
+          #  display changes
+          academy.all_cohorts
         elsif confirm == "r"
           puts "aborted".red
         end
@@ -1163,18 +1182,18 @@ end
 # general testing
 
 #  converted test entries to Student objects
-sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true})
-vader = Student.new("Darth Vader")
-hannibal = Student.new("Dr. Hannibal Lecter")
-nurse_ratched = Student.new("Nurse Ratched")
-michael_corleone = Student.new("Michael Corleone")
-alex_delarge = Student.new("Alex DeLarge")
-wicked_witch = Student.new("The Wicked Witch of the West")
-terminator = Student.new("Terminator")
-freddy_krueger = Student.new("Freddy Krueger")
-joker = Student.new("The Joker")
-joffrey = Student.new("Joffrey Baratheon")
-norman_bates = Student.new("Norman Bates")
+sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+vader = Student.new("Darth Vader", {registered: true})
+hannibal = Student.new("Dr. Hannibal Lecter", {registered: true})
+nurse_ratched = Student.new("Nurse Ratched", {registered: true})
+michael_corleone = Student.new("Michael Corleone", {registered: true})
+alex_delarge = Student.new("Alex DeLarge", {registered: true})
+wicked_witch = Student.new("The Wicked Witch of the West", {registered: true})
+terminator = Student.new("Terminator", {registered: true})
+freddy_krueger = Student.new("Freddy Krueger", {registered: true})
+joker = Student.new("The Joker", {registered: true})
+joffrey = Student.new("Joffrey Baratheon", {registered: true})
+norman_bates = Student.new("Norman Bates", {registered: true})
 
 #  create "Villains Academy" Academy object
 villains_academy = Academy.new("Villains Academy")
