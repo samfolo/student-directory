@@ -721,6 +721,10 @@ class Student
   end
 end
 
+def no_id?(academy)
+
+end
+
 def interface(academy)
   include Formatting
   include Validation
@@ -747,14 +751,24 @@ def interface(academy)
   #  skip if user types end
   until choice.downcase == "end"
     choice = choice.to_i
-    until (1..7).to_a.include?(choice)
+    until (1..8).to_a.include?(choice)
       puts "invalid.."
       choice = gets.chomp.to_i
     end
 
+    #  for reference:
     #  document the months which already have cohorts
     existing_cohorts = []
     academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month) }
+    #  get all profiles and ids in two seperate arrays
+    all_ids = []
+    all_profiles = []
+    academy.cohorts.each { |cohort|
+      cohort.students.each { |student|
+        all_ids.push(student.student_id)
+        all_profiles.push(student)
+      }
+    }
 
     case choice
     when 1
@@ -826,15 +840,7 @@ def interface(academy)
       until sure == "Y"
         puts "Enter the ID of the student you would like to delete"
         puts "(press 'return' to go back to menu)"
-        all_ids = []
-        all_profiles = []
-        #  get all profiles and ids in two seperate arrays
-        academy.cohorts.each { |cohort|
-          cohort.students.each { |student|
-            all_ids.push(student.student_id)
-            all_profiles.push(student)
-          }
-        }
+        
         #  get an ID, keeps asking until ID is valid
         to_delete = gets.chomp
         until all_ids.include?(to_delete)
@@ -970,16 +976,93 @@ def interface(academy)
         all.by_length(limit)
       end
 
+    when 8
+      puts "Migrating student.."
+      puts "Do you have the student's ID at hand? ( Y / N )"
+      puts "(press return to go back to menu)"
+      yesno = gets.chomp.upcase
+      until ["Y", "N"].include?(yesno)
+        puts "Invalid Entry. Please enter 'Y' or 'N' to confirm"
+        puts "(press return to go back to menu)"
+        yesno = gets.chomp.upcase
+      end
+      if yesno == "N"
+        puts "Displaying all existing students.."
+        academy.all_students
+      end
+      sure = ""  #  repeat until user is sure of deletion
+      until sure == "Y"
+        puts "Enter the ID of the student you would you like to move"
+        puts "(press 'return' to go back to menu)"
+        student_to_move = gets.chomp
+        until all_ids.include?(student_to_move)
+          puts "Invalid. Please enter a valid ID"
+          puts "(press 'return' to go back to menu)"
+          student_to_move = gets.chomp
+        end
+        #  selects student
+        selected_student = all_profiles.select { |profile|
+          profile if profile.student_id == student_to_move
+        }[0]
+        #  selects cohort of student
+        base_cohort = academy.cohorts.select { |cohort| 
+          cohort if cohort.month == selected_student.cohort
+        }[0]
+
+        puts "Which cohort would you like to move #{ selected_student.name } to?"
+        puts "(press 'return' to go back to menu)"
+        #  only puts possible moves (cant move to current cohort)
+        academy.cohorts.each { |cohort| puts cohort.month if cohort.month != selected_student.cohort }
+        target_cohort = gets.chomp.capitalize
+        #  until target is a valid and seperate cohort
+        until existing_cohorts.include?(target_cohort) && selected_student.cohort != target_cohort
+          if selected_student.cohort == target_cohort
+            puts "#{ selected_student.name } is already in the #{ target_cohort } cohort."
+            puts "Please enter another cohort"
+            puts "(press return to go back to menu)"
+            academy.cohorts.each { |cohort| puts cohort.month if cohort.month != selected_student.cohort }
+            target_cohort = gets.chomp.capitalize
+          else
+            puts "Invalid entry. Please enter an existing cohort"
+            puts "(press return to go back to menu)"
+            academy.cohorts.each { |cohort| puts cohort.month if cohort.month != selected_student.cohort }
+            target_cohort = gets.chomp.capitalize
+          end
+        end
+        puts "You are about to move Student ID: #{ selected_student.student_id } (#{ selected_student.name }) to the #{ target_cohort } cohort."
+        puts "Are you sure? ( Y / N )"
+        sure = gets.chomp.upcase
+        until ["Y", "N"].include?(sure)
+          puts "Please enter 'Y' or 'N' to confirm"
+          sure = gets.chomp.upcase
+        end
+        if sure == "Y"
+          target_cohort = academy.cohorts.select { |cohort| 
+            cohort if cohort.month == target_cohort
+          }[0]
+          base_cohort.move_student(selected_student, target_cohort)
+          puts "Done! Style this"
+          academy.all_cohorts
+        end
+      end
     end
+
+  
     puts "Please choose an option:"
     
-    puts "1) View all students"
-    puts "2) View all Cohorts"
-    puts "3) Add a student"
-    puts "4) Add a cohort"
-    puts "5) Delete a student"
+    puts "1) Display all students in #{ academy.name }"
+    puts "2) View all Cohorts in #{ academy.name }"
+    puts "3) Add a student to a specific cohort"
+    puts "4) Add a cohort to #{ academy.name }"
+    puts "5) Delete a student from a specific cohort"
     puts "6) Filter students (Cohort Level)"
     puts "7) Filter students (All)"
+    puts "8) Move Student to another Cohort"
+    puts "9) Student profiles (Cohort Level)"
+    puts "10) Student profiles (All)"
+    puts "11) Move Student"
+    puts "12) Edit Student"
+    puts "13) Delete Cohort...?"
     puts "type 'end' to save and exit"
     choice = gets.chomp
   end
