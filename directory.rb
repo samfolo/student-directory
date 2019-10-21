@@ -299,7 +299,9 @@ class Cohort
 
   def initialize(month)
     @academy
-    if actual_months.include?(month.downcase.to_sym)
+    if actual_months.include?(month.downcase.to_sym) || 
+    #  or temporary cohorts for full-academy filtering
+    month == "Whole Academy"
       @month = month.capitalize
     else
       raise "Error: #{month} is not a month."
@@ -867,7 +869,62 @@ def interface(academy)
         puts "(press 'return' to go back to menu)"
         cohort_to_search = gets.chomp.capitalize
       end
+      #  locate cohort in question
+      filter_cohort = academy.cohorts.select{ |cohort| 
+                      cohort if cohort.month == cohort_to_search 
+                    }[0]
+
       puts "Searching through #{ cohort_to_search } cohort.."
+      puts "How would you like to filter results? (enter a number)"
+      puts "1) Initial"
+      puts "2) Length"
+      puts "(press 'return' to go back to menu)"
+      #  get choice
+      filter_by = gets.chomp.to_i
+      until (1..2).to_a.include?(filter_by)
+        puts "Invalid option"
+        puts "How would you like to filter results? (enter a number)"
+        puts "1) Initial"
+        puts "2) Length"
+        puts "(press 'return' to go back to menu)"
+        filter_by = gets.chomp.to_i
+      end
+      
+      case filter_by
+      when 1
+        puts "Enter an initial"
+        puts "(press 'return' to go back to menu)"
+        initial = gets.chomp.upcase
+        until initial.length == 1 && (/[a-zA-Z]/).match(initial)
+          puts "Invalid entry. Please enter a single letter"
+          puts "(press 'return' to go back to menu)"
+          initial = gets.chomp.upcase
+        end
+        puts "Results for #{ academy.name }'s #{ filter_cohort.month } cohort"
+        filter_cohort.by_initial(initial)
+      when 2
+        puts "Enter a length limit (number)"
+        puts "(press 'return' to go back to menu)"
+        limit = gets.chomp.to_i
+        until limit > 0
+          puts "Invalid entry. Please enter a number"
+          puts "(press 'return' to go back to menu)"
+          limit = gets.chomp.to_i
+        end
+        puts "Results for #{ academy.name }'s #{ filter_cohort.month } cohort"
+        filter_cohort.by_length(limit)
+      end
+      
+    when 7
+      #  gather every student from every cohort into temporary cohort
+      all = Cohort.new("Whole Academy")
+      academy.cohorts.each { |cohort|
+        cohort.students.each { |student|
+          all.students.push(student)
+        }
+      }
+
+      puts "Searching #{ academy.name }'s entire roster.."
       puts "How would you like to filter results? (enter a number)"
       puts "1) Initial"
       puts "2) Length"
@@ -881,9 +938,7 @@ def interface(academy)
         puts "(press 'return' to go back to menu)"
         filter_by = gets.chomp.to_i
       end
-      filter_cohort = academy.cohorts.select{ |cohort| 
-                      cohort if cohort.month == cohort_to_search 
-                    }[0]
+
       case filter_by
       when 1
         puts "Enter an initial"
@@ -894,7 +949,8 @@ def interface(academy)
           puts "(press 'return' to go back to menu)"
           initial = gets.chomp.upcase
         end
-        filter_cohort.by_initial(initial)
+        puts "Results for #{ academy.name }"
+        all.by_initial(initial)
       when 2
         puts "Enter a length limit (number)"
         puts "(press 'return' to go back to menu)"
@@ -904,12 +960,10 @@ def interface(academy)
           puts "(press 'return' to go back to menu)"
           limit = gets.chomp.to_i
         end
-        filter_cohort.by_length(limit)
-
+        puts "Results for #{ academy.name }"
+        all.by_length(limit)
       end
-      
-    when 7
-      puts "CHOICE"
+
     end
     puts "Please choose an option:"
     
