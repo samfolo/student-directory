@@ -273,18 +273,24 @@ class Academy
       puts long_bar.darkblue
       print ("|" * 23).darkblue, "-- #{ cohort.month } Cohort --".center(48), ("|" * 23).darkblue, "\n"
       puts long_bar.darkblue
-      cohort.print_body
+      if cohort.students.length < 1
+        puts ("* NO STUDENTS ENROLLED *").center(94).red
+      else
+        cohort.print_body
+      end
       puts long_bar.darkblue
     }
   end
 
   #  footer of table
   def print_footer
+    #  semantics check to account for cohorts without any students
+    non_empty = @cohorts.select { |cohort| cohort if cohort.students.count > 0 }.count
     puts long_bar.blue
     puts total_students != 1 ?
-    "Overall, the Academy has ".blue + "#{ total_students }".bold.blue + 
-    " great students over ".blue + "#{ @cohorts.count }".bold.blue + " cohorts".blue : 
-    "The Academy only has ".blue + "#{ total_students }".bold.blue + " student.".blue
+    "Overall, #{ self.name } has ".blue + "#{ total_students }".bold.blue + 
+    " great students over ".blue + "#{ non_empty }".bold.blue + " cohorts".blue : 
+    "#{ self.name } only has ".blue + "#{ total_students }".bold.blue + " student.".blue
 
     puts " "
     puts " "
@@ -746,7 +752,7 @@ def interface(academy)
   #  skip if user types end
   until choice.downcase == "end"
     choice = choice.to_i
-    until (1..11).to_a.include?(choice)
+    until (1..12).to_a.include?(choice)
       puts "invalid.."
       choice = gets.chomp.to_i
     end
@@ -1038,6 +1044,8 @@ def interface(academy)
           base_cohort.move_student(selected_student, target_cohort)
           puts "Done! Style this"
           academy.all_cohorts
+        else
+          puts "aborted".red
         end
       end
     
@@ -1072,28 +1080,60 @@ def interface(academy)
     when 11
       academy.all_students
       puts "Which student would you like to edit? (enter an ID)"
+      puts "(press return to go back to menu)"
       student_choice = gets.chomp.capitalize_each
       student_to_edit = all_profiles.select { |student| student if student.student_id == student_choice }[0]
       until student_to_edit  #  exists
-        puts "NO!"
+        puts "Invalid entry. Please enter a valid ID"
+        puts "(press return to go back to menu)"
       end
       student_to_edit.edit_student
       #  repeat edit mode for student until user exits
       puts "Would you like to edit another attribute for #{ student_to_edit.name }? ( Y / N )"
+      puts "(press return to go back to menu)"
       yesno = gets.chomp.upcase
       until yesno == "N"
         if yesno == "Y"
           student_to_edit.edit_student
           puts "Would you like to edit another attribute for #{ student_to_edit.name }? ( Y / N )"
+          puts "(press return to go back to menu)"
           yesno = gets.chomp.upcase
         else
           puts "Invalid Entry. Please enter 'Y' or 'N' to confirm"
+          puts "(press return to go back to menu)"
         end
       end
 
     when 12
-      
-
+      puts "Deleting a cohort.."
+      puts "When a cohort is deleted, all members are redistributed amongst all other"
+      puts "existing cohorts.  Are you sure you want to do this? ( Y / N )"
+      sure = gets.chomp.upcase
+      until ["Y", "N"].include?(sure)
+        puts "Please enter 'Y' or 'N' to confirm"
+        sure = gets.chomp.upcase
+      end
+      if sure == "Y"
+        puts "Which cohort would you like to delete?"
+        puts "(press return to go back to menu)"
+        target_cohort = gets.chomp.capitalize
+        until existing_cohorts.include?(target_cohort)
+          puts "Invalid cohort. Which cohort would you like to delete?"
+          puts "(press return to go back to menu)"
+          target_cohort = gets.chomp.capitalize
+        end
+        puts "Deleting #{ academy.name }'s #{ target_cohort } cohort. Type 'confirm' to confirm (or 'R' to abort)"
+        confirm = gets.chomp.downcase
+        until ["confirm", "r"].include?(confirm)
+          puts "Type 'confirm' to confirm deletion (or 'R' to abort)"
+          target_cohort = gets.chomp.capitalize
+        end
+        if confirm == "confirm"
+          puts "DOES IT"
+        elsif confirm == "r"
+          puts "aborted".red
+        end
+      end
     end
 
   
