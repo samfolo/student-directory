@@ -124,7 +124,7 @@ module Validation
   end
 
   def validate_age(student, age)
-    until (5..130).to_a.include?(age.to_f.round) || ['R', 'r'].include?(age)
+    until (age.scan(/\D/).empty? && (5..130).to_a.include?(age.to_f.round)) || ['R', 'r'].include?(age)
       puts "* INVALID *".bold.red
       puts short_bar
       puts "Invalid entry"
@@ -154,14 +154,15 @@ module Validation
   end
 
   def validate_height(student, height)
-    until height.to_i >= 50 && height.to_i < 300 || ['R', 'r'].include?(height)
+    #  check to make sure all characters are digits (also height restrictions)
+    until (height.scan(/\D/).empty? && height.to_i >= 50 && height.to_i < 300) || ['R', 'r'].include?(height)
       puts "* INVALID *".bold.red
       puts short_bar
-      if height.to_i >= 300
+      if height.scan(/\D/).empty? && height.to_i >= 300
         puts "Invalid entry"
         puts "Due to the events of last year we no longer accept giants to Villains Academy.".blue
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
-      elsif height.to_i < 50 && height.to_i != 0  #  because non-digits.to_i return 0
+      elsif height.scan(/\D/).empty? && height.to_i < 50 && height.to_i != 0  #  because non-digits.to_i return 0
         puts "Invalid entry"
         puts "Student is too short to be a villain.  Minimum height requirement is 50cm.".blue
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
@@ -609,7 +610,7 @@ class Student
     @country_of_birth = options.fetch(:country_of_birth)
     @is_disabled = options.fetch(:is_disabled)
     @cohort  #  assigned upon addition to cohort
-    @registered = true
+    @registered = options.fetch(:registered)
     #  use luhns algorithm to assign a 'valid' zero-padded ID
     random_num = rand(10000000)
     random_id = random_num.to_s.rjust(7, "0")
@@ -627,7 +628,8 @@ class Student
       gender: "N/A",
       height: "N/A",
       country_of_birth: "N/A",
-      is_disabled: "N/A"
+      is_disabled: "N/A",
+      registered: false
     }
   end
 
@@ -753,7 +755,7 @@ def interface(academy)
   until choice.downcase == "end"
     choice = choice.to_i
     until (1..12).to_a.include?(choice)
-      puts "invalid.."
+      puts "invalid choice. Please pick an option from the menu".red
       choice = gets.chomp.to_i
     end
 
@@ -1137,7 +1139,7 @@ def interface(academy)
           #  collect all other target cohorts
           other_cohorts = academy.cohorts.select { |cohort| cohort if cohort.month != target_cohort }
           #  redistribute students:
-          #  delete cohort from academy (not serviced in redistribution)
+          #  delete target cohort from academy (not serviced in redistribution)
           academy.cohorts.delete_at(academy.cohorts.index(selected_cohort))
           #  allocate one student to every other cohort in academy.cohorts array
           i = 0
@@ -1154,7 +1156,6 @@ def interface(academy)
         end
       end
     end
-
   
     puts "Please choose an option:"
     
