@@ -671,7 +671,7 @@ class Student
     #  exit edit mode if user types 'R'
     if number.downcase == 'r'
     puts "Done.  Current state of #{ self.name }'s profile:".green
-    (self.quick_facts; exit_edit_mode; goodbye; return)
+    (self.quick_facts; exit_edit_mode; return)
     end
 
     #  edit data for choice (using Validation mixin)
@@ -721,10 +721,6 @@ class Student
   end
 end
 
-def no_id?(academy)
-
-end
-
 def interface(academy)
   include Formatting
   include Validation
@@ -741,7 +737,7 @@ def interface(academy)
   puts "8) Move Student to another Cohort"
   puts "9) Student profiles (Cohort Level)"
   puts "10) Student profiles (All)"
-  puts "11) Edit Student"
+  puts "11) Edit a student"
   puts "12) Delete Cohort...?"
   puts "type 'end' to save and exit"
   #  get user choice
@@ -750,7 +746,7 @@ def interface(academy)
   #  skip if user types end
   until choice.downcase == "end"
     choice = choice.to_i
-    until (1..10).to_a.include?(choice)
+    until (1..11).to_a.include?(choice)
       puts "invalid.."
       choice = gets.chomp.to_i
     end
@@ -855,7 +851,7 @@ def interface(academy)
         puts "Are you sure? ( Y / N )"
         sure = gets.chomp.upcase
         until ["Y", "N"].include?(sure)
-          puts "Please enter 'Y' or 'N' to confirm"
+          puts "Please enter 'Y' or 'N' to confirm deletion"
           sure = gets.chomp.upcase
         end
         if sure == "Y"
@@ -1061,7 +1057,7 @@ def interface(academy)
       }
 
     when 10
-      puts "Displaying all #{ academy.name } student profiles for #{ academy.name }.."
+      puts "Displaying all student profiles for #{ academy.name }.."
       puts " "
       i = 0
       academy.cohorts.each { |cohort| 
@@ -1074,7 +1070,30 @@ def interface(academy)
       }
 
     when 11
+      academy.all_students
+      puts "Which student would you like to edit? (enter an ID)"
+      student_choice = gets.chomp.capitalize_each
+      student_to_edit = all_profiles.select { |student| student if student.student_id == student_choice }[0]
+      until student_to_edit  #  exists
+        puts "NO!"
+      end
+      student_to_edit.edit_student
+      #  repeat edit mode for student until user exits
+      puts "Would you like to edit another attribute for #{ student_to_edit.name }? ( Y / N )"
+      yesno = gets.chomp.upcase
+      until yesno == "N"
+        if yesno == "Y"
+          student_to_edit.edit_student
+          puts "Would you like to edit another attribute for #{ student_to_edit.name }? ( Y / N )"
+          yesno = gets.chomp.upcase
+        else
+          puts "Invalid Entry. Please enter 'Y' or 'N' to confirm"
+        end
+      end
+
+    when 12
       
+
     end
 
   
@@ -1090,7 +1109,7 @@ def interface(academy)
     puts "8) Move Student to another Cohort"
     puts "9) Student profiles (Cohort Level)"
     puts "10) Student profiles (All)"
-    puts "11) Edit Student"
+    puts "11) Edit a student"
     puts "12) Delete Cohort...?"
     puts "type 'end' to save and exit"
     choice = gets.chomp
