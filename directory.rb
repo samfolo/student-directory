@@ -387,16 +387,16 @@ class Cohort
   end
 
   def by_initial(initial)
-    natural_names = no_prefix  #  Formatting mixin
+    natural_names = no_prefix  #  remove prefixes (Formatting mixin)
   
-    #  filters natural names by first initial, then picks corresponding 
+    #  filter natural names by first initial, then pick corresponding 
     #  entry from original array
     filtered_list = []
     natural_names.each.with_index { |student, i| 
       filtered_list << @students[i].name if student.chr == initial 
     }
   
-    # putses result to console
+    # puts result to console
     puts "Students filtered by initial '#{ initial }' (excluding prefixes)".bold.blue
     puts short_bar
     puts filtered_list
@@ -409,14 +409,14 @@ class Cohort
   def by_length(length)
     natural_names = no_prefix
   
-    #  filters out names over a certain number of characters, 
-    #  then picks corresponding entry from original array
+    #  filter out names over a certain number of characters, 
+    #  then pick corresponding entry from original array
     filtered_list = []
     natural_names.each.with_index { |student, i| 
       filtered_list << @students[i].name if student.length <= length 
     }
   
-    # putses result to console
+    # puts result to console
     puts "Students filed under names with no more than:".blue
     puts "#{ length }".bold.blue + " characters (excluding prefixes)".blue
     puts short_bar
@@ -758,14 +758,14 @@ def interface(academy)
       puts "(press return to go back to menu)"
       #  puts list of existing cohorts (currently order insensitive)
       academy.cohorts.each { |cohort| puts cohort.month }
-      cohort_choice = gets.chomp
+      cohort_choice = gets.chomp.capitalize
       #  begin adding a student to the user choice of cohort
       academy.cohorts.select { |cohort|
         cohort.month == cohort_choice }[0].input_student
     when 4
       puts "Creating a new cohort.."
       existing_cohorts = []
-      academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month)}
+      academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month) }
       puts "Enter a valid month to create a new cohort."
       puts "(press return to go back to menu)"
       new_month = gets.chomp
@@ -844,7 +844,42 @@ def interface(academy)
         end
       end
     when 6
-      puts "CHOICE"
+      puts "Searching.."
+      puts "Which cohort would you like to search?"
+      puts "(press 'return' to go back to menu)"
+      cohort_to_search = gets.chomp.capitalize
+
+      existing_cohorts = []
+      academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month) }
+
+      until existing_cohorts.include?(cohort_to_search)
+        puts "Invalid entry. Please enter a valid cohort"
+        puts "Which cohort would you like to search?"
+        puts "(press 'return' to go back to menu)"
+        cohort_to_search = gets.chomp.capitalize
+      end
+      puts "Searching through #{ cohort_to_search } cohort.."
+      puts "How would you like to filter results? (enter a number)"
+      puts "1) Initial"
+      puts "2) Gender"
+      puts "(press 'return' to go back to menu)"
+      filter_by = gets.chomp.to_i
+      until (1..2).to_a.include?(filter_by)
+        puts "Invalid option"
+        puts "How would you like to filter results? (enter a number)"
+        puts "1) Initial"
+        puts "2) Gender"
+        puts "(press 'return' to go back to menu)"
+        filter_by = gets.chomp.to_i
+      end
+      case filter_by
+      when 1
+        to_filter = academy.cohorts.select{ |cohort| 
+                      cohort if cohort.month == cohort_to_search 
+                    }[0]
+        puts to_filter.by_initial("S")
+        #to_filter.students.by_intital("S")
+      end
     when 7
       puts "CHOICE"
     end
