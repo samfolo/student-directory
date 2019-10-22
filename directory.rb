@@ -162,7 +162,7 @@ module Validation
                                    "#{ student.name }'s actual age".yellow + ": "
       age = gets.chomp
     end
-    age.to_f.floor  #  ages work by flooring
+    age  #  ages work by flooring
   end
 
   def validate_gender(student, gender)
@@ -205,7 +205,7 @@ module Validation
                                       "#{ student.name }'s actual height".yellow + ": "
       height = gets.chomp
     end
-    height.to_f
+    height
   end
 
   def validate_country_of_birth(student, country_of_birth)
@@ -318,13 +318,22 @@ class Academy
 
   #  footer of table
   def print_footer
-    #  semantics check to account for cohorts without any students
+    #  semantics check to account for cohorts without any students and/or fewer than two cohorts
     non_empty = @cohorts.select { |cohort| cohort if cohort.students.count > 0 }.count
     puts long_bar.blue
-    puts total_students != 1 ?
-    "Overall, #{ self.name } has ".blue + "#{ total_students }".bold.blue + 
-    " great students over ".blue + "#{ non_empty }".bold.blue + " cohorts".blue : 
-    "#{ self.name } only has ".blue + "#{ total_students }".bold.blue + " student.".blue
+    if @cohorts.length > 1
+      puts total_students != 1 ?
+      "Overall, #{ self.name } has ".blue + "#{ total_students }".bold.blue + 
+      " great students over ".blue + "#{ non_empty }".bold.blue + " cohorts".blue : 
+      "#{ self.name } only has ".blue + "#{ total_students }".bold.blue + " student.".blue
+    elsif @cohorts.length == 1
+      puts total_students != 1 ?
+      "Overall, #{ self.name } has ".blue + "#{ total_students }".bold.blue + 
+      " great students, all in a single cohort".blue : 
+      "#{ self.name } only has ".blue + "#{ total_students }".bold.blue + " student.".blue
+    else
+      puts "There are currently no cohorts in #{ self.name }"
+    end
     puts " "
   end
 end
@@ -710,17 +719,17 @@ class Student
       new_age = gets.chomp
       #  two-staged to protect from mutation during validation (cases 2..6)
       updated_age = validate_age(self, new_age)
-      self.age = updated_age.upcase == 'R' ? self.age : updated_age 
+      self.age = ['R', 'r'].include?(updated_age) ? self.age : updated_age.to_f.floor
     when "3"
       print "#{ self.name }'s actual gender".yellow + ": "
       new_gender = gets.chomp.upcase
       updated_gender = validate_gender(self, new_gender.upcase)
-      self.gender = updated_gender.upcase == 'R' ? self.gender : updated_gender
+      self.gender = updated_gender.upcase == 'R' ? self.gender : updated_gender.upcase
     when "4"
       print "#{ self.name }'s actual height".yellow + ": "
       new_height = gets.chomp
       updated_height = validate_height(self, new_height)
-      self.height = updated_height.upcase == 'R' ? self.height : updated_height
+      self.height = updated_height.upcase == 'R' ? self.height : updated_height.to_f
     when "5"
       print "#{ self.name }'s actual country of birth".yellow + ": "
       new_country_of_birth = gets.chomp.capitalize_each
@@ -733,7 +742,7 @@ class Student
       self.is_disabled = updated_disability_status.upcase == 'R' ? self.is_disabled : updated_disability_status
     end
     puts short_bar
-    puts "Done.  Current state of #{ self.name}'s profile".yellow + ":"
+    puts "Done.  Current state of #{ self.name}'s profile".italic.yellow + ":"
     self.quick_facts
     exit_edit_mode
   end
@@ -865,7 +874,7 @@ def interface(academy)
       until existing_cohorts.include?(cohort_choice)
         puts "----"
         puts "Invalid entry.".italic.red
-        puts "Please enter an existing cohort".blue
+        puts "Please enter an existing cohort month".blue
         puts "(press return to go back to menu)".italic
         academy.cohorts.each.with_index { |cohort, i|
           puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
@@ -898,7 +907,7 @@ def interface(academy)
       end
       sure = ""  #  repeat until user is sure of deletion
       until sure == "Y"
-        puts " "
+        puts "----"
         puts "Enter the ID of the student you would like to delete".bold.blue
         puts "(press 'return' to go back to menu)".italic
         
@@ -1002,7 +1011,7 @@ def interface(academy)
           else
             puts "----"
             puts "Invalid entry.".italic.red
-            puts "Please enter an existing cohort".blue
+            puts "Please enter an existing cohort month".blue
             puts "(press return to go back to menu)".italic
             academy.cohorts.each.with_index { |cohort, i|
               puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
@@ -1027,7 +1036,8 @@ def interface(academy)
           base_cohort.move_student(selected_student, target_cohort)
           puts long_bar
           puts " "
-          puts ("Done. #{ selected_student.name } has been moved to the #{ target_cohort.month } cohort.").blue
+          puts "Done.".italic.blue
+          puts ("#{ selected_student.name } has been moved to the #{ target_cohort.month } cohort.").italic.blue
           academy.all_cohorts
         else
           puts "----"
@@ -1109,7 +1119,7 @@ def interface(academy)
         until limit.to_i > 0 && limit.scan(/\D/).empty?
           puts "----"
           puts "Invalid entry.".italic.red
-          puts "Please enter a ".blue + "number" + " for the maximum name length".blue
+          puts "Please enter an integer for the maximum name length".blue
           puts "(press 'return' to go back to menu)".italic
           limit = gets.chomp
         end
@@ -1190,8 +1200,8 @@ def interface(academy)
     when 11
       puts long_bar
       puts " "
-      academy.all_students
       puts "Editing a student..".italic.blue
+      academy.all_students
       puts "Which student would you like to edit? ( ".bold.blue + "enter an ID" + " )".bold.blue
       puts "(press return to go back to menu)".italic
       student_choice = gets.chomp
@@ -1209,7 +1219,6 @@ def interface(academy)
       puts " "
       #  repeat edit mode for student until user exits
       puts ("Would you like to edit another attribute for #{ student_to_edit.name }? (").blue + " Y " + "/".blue + " N " + ")".blue
-      puts "(press return to go back to menu)".italic
       yesno = gets.chomp.upcase
       until yesno == "N"
         if yesno == "Y"
@@ -1231,8 +1240,12 @@ def interface(academy)
       puts long_bar
       puts " "
       puts "Creating a new cohort..".italic.blue
-      puts "Enter a valid month to create a new cohort.".bold.blue
       puts "(press return to go back to menu)".italic
+      puts "Enter a valid month to create a new cohort.".bold.blue
+      puts "Existing cohorts:".bold.blue
+      academy.cohorts.each.with_index { |cohort, i|
+        puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
+      }
       new_month = gets.chomp
       #  check if entry is a valid month (Validation mixin) 
       #  and if cohort already exists
@@ -1265,71 +1278,80 @@ def interface(academy)
       puts " "
 
     when 13
-      puts long_bar
-      puts " "
-      puts "Deleting a cohort..".italic.blue
-      puts "When a cohort is deleted, all members are redistributed amongst all other existing cohorts.".bold.blue
-      puts "Are you sure you want to do this? ".italic.blue + "(".blue + " Y " + "/".blue + " N " + ")".blue
-      sure = gets.chomp.upcase
-      until ["Y", "N"].include?(sure)
-        puts "----"
-        puts "Invalid entry.".italic.red
-        puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
-        sure = gets.chomp.upcase
-      end
-      if sure == "Y"
+      #  doesn't allow user to delete if there is only one cohort
+      if academy.cohorts.count == 1
         puts long_bar
-        puts "Which cohort would you like to delete? ( ".bold.blue + "enter a month" + " )".bold.blue
-        puts "(press return to go back to menu)".italic
-        academy.cohorts.each.with_index { |cohort, i|
-          puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-        }
-        target_cohort = gets.chomp.capitalize
-        until existing_cohorts.include?(target_cohort)
+        puts " "
+        puts "Operation denied".italic.red
+        puts "An academy must have at least one cohort.".blue
+        puts " "
+      else
+        puts long_bar
+        puts " "
+        puts "Deleting a cohort..".italic.blue
+        puts "When a cohort is deleted, all members are redistributed amongst all other existing cohorts.".bold.blue
+        puts "Are you sure you want to do this? ".italic.blue + "(".blue + " Y " + "/".blue + " N " + ")".blue
+        sure = gets.chomp.upcase
+        until ["Y", "N"].include?(sure)
           puts "----"
           puts "Invalid entry.".italic.red
-          puts "Please enter a valid cohort month".blue
+          puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
+          sure = gets.chomp.upcase
+        end
+        if sure == "Y"
+          puts long_bar
+          puts "Which cohort would you like to delete? ( ".bold.blue + "enter a month" + " )".bold.blue
           puts "(press return to go back to menu)".italic
           academy.cohorts.each.with_index { |cohort, i|
             puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
           }
           target_cohort = gets.chomp.capitalize
-        end
-        puts long_bar
-        puts " "
-        puts ("Deleting #{ academy.name }'s #{ target_cohort } cohort. Type ").bold.blue + "confirm".bold + " to confirm ( ".bold.blue + "or 'R' to abort".italic + " )".blue
-        confirm = gets.chomp.downcase
-        until ["confirm", "r"].include?(confirm)
-          puts "----"
-          puts "Invalid entry.".italic.red
-          puts "Type ".blue + "confirm" + " to confirm deletion ( ".blue + "or 'R' to abort".italic + " )".blue
-          confirm = gets.chomp.downcase
-        end
-        if confirm == "confirm"
+          until existing_cohorts.include?(target_cohort)
+            puts "----"
+            puts "Invalid entry.".italic.red
+            puts "Please enter a valid cohort month".blue
+            puts "(press return to go back to menu)".italic
+            academy.cohorts.each.with_index { |cohort, i|
+              puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
+            }
+            target_cohort = gets.chomp.capitalize
+          end
           puts long_bar
           puts " "
-          puts "Deleted.".italic.blue
-          #  find target cohort
-          selected_cohort = academy.cohorts.select { |cohort| cohort.month == target_cohort }[0]
-          #  collect all other target cohorts
-          other_cohorts = academy.cohorts.select { |cohort| cohort if cohort.month != target_cohort }
-          #  redistribute students:
-          #  delete target cohort from academy (not serviced in redistribution)
-          academy.cohorts.delete_at(academy.cohorts.index(selected_cohort))
-          #  allocate one student to every other cohort in academy.cohorts array
-          i = 0
-          selected_cohort.students.each { |student| 
-            other_cohorts[i].students.push(student)
-            student.cohort = other_cohorts[i].month
-            i += 1
-            i = 0 if i == other_cohorts.length
-          }
-          #  display changes
-          academy.all_cohorts
-        elsif confirm == "r"
-          puts "----"
-          puts "aborted".italic.red
-          puts " "
+          puts ("Deleting #{ academy.name }'s #{ target_cohort } cohort. Type ").bold.blue + "confirm".bold + " to confirm ( ".bold.blue + "or 'R' to abort".italic + " )".blue
+          confirm = gets.chomp.downcase
+          until ["confirm", "r"].include?(confirm)
+            puts "----"
+            puts "Invalid entry.".italic.red
+            puts "Type ".blue + "confirm" + " to confirm deletion ( ".blue + "or 'R' to abort".italic + " )".blue
+            confirm = gets.chomp.downcase
+          end
+          if confirm == "confirm"
+            puts long_bar
+            puts " "
+            puts "Deleted.".italic.blue
+            #  find target cohort
+            selected_cohort = academy.cohorts.select { |cohort| cohort.month == target_cohort }[0]
+            #  collect all other target cohorts
+            other_cohorts = academy.cohorts.select { |cohort| cohort if cohort.month != target_cohort }
+            #  redistribute students:
+            #  delete target cohort from academy (not serviced in redistribution)
+            academy.cohorts.delete_at(academy.cohorts.index(selected_cohort))
+            #  allocate one student to every other cohort in academy.cohorts array
+            i = 0
+            selected_cohort.students.each { |student| 
+              other_cohorts[i].students.push(student)
+              student.cohort = other_cohorts[i].month
+              i += 1
+              i = 0 if i == other_cohorts.length
+            }
+            #  display changes
+            academy.all_cohorts
+          elsif confirm == "r"
+            puts "----"
+            puts "aborted".italic.red
+            puts " "
+          end
         end
       end
     end
