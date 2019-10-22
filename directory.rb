@@ -149,18 +149,20 @@ module Validation
   end
 
   def validate_age(student, age)
-    until (age.scan(/\D/).empty? && (5..130).to_a.include?(age.to_f.round)) || ['R', 'r'].include?(age)
+    #  make sure there are no letters or extra decimal points before rounding
+    until (/^\d*\.?\d*$/.match(age) && (5..130).include?(age.to_f)) || ['R', 'r'].include?(age)
       puts "* INVALID *".bold.red
       puts short_bar
       puts "Invalid entry."
       puts ("Please enter #{ student.name }'s age").blue
       puts "(Applicants must be at least 5 and at most 130 years of age)".blue
       abort?
+      #  semantic check for new students and those under edit
       print student.age == "N/A" ? "#{ student.name }'s age".yellow + ": " : 
                                    "#{ student.name }'s actual age".yellow + ": "
       age = gets.chomp
     end
-    age
+    age.to_f.round
   end
 
   def validate_gender(student, gender)
@@ -171,6 +173,7 @@ module Validation
       puts ("Please choose #{ student.name }'s gender").blue
       puts "(".blue + "M" + ") Male / (".blue + "F" + ") Female / (".blue + "NB" + ") Non-Binary / (".blue + "O" + ") Other / Prefer not to say".blue
       abort?
+      #  semantic check for new students and those under edit
       print student.gender == "N/A" ? "#{ student.name }'s gender".yellow + ": " : 
                                       "#{ student.name }'s actual gender".yellow + ": "
       gender = /[a-zA-Z]/.match(gender) ? gets.chomp : gets.chomp.upcase!
@@ -179,15 +182,16 @@ module Validation
   end
 
   def validate_height(student, height)
-    #  check to make sure all characters are digits (also height restrictions)
-    until (height.scan(/\D/).empty? && height.to_i >= 50 && height.to_i < 300) || ['R', 'r'].include?(height)
+    #  make sure all characters are digits, one decimal point (also check height restrictions)
+    until (/^\d*\.?\d*$/.match(height) && (50..300).include?(height.to_f)) || ['R', 'r'].include?(height)
+      height = height
       puts "* INVALID *".bold.red
       puts short_bar
-      if height.scan(/\D/).empty? && height.to_i >= 300
+      if /^\d*\.?\d*$/.match(height) && height.to_f > 300
         puts "Invalid entry."
         puts "Due to the events of last year we no longer accept giants to Villains Academy.".blue
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
-      elsif height.scan(/\D/).empty? && height.to_i < 50 && height.to_i != 0  #  because non-digits.to_i return 0
+      elsif /^\d*\.?\d*$/.match(height) && height.to_f < 50
         puts "Invalid entry."
         puts "Student is too short to be a villain.  Minimum height requirement is 50cm.".blue
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
@@ -196,11 +200,12 @@ module Validation
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
       end
       abort?
+      #  semantic check for new students and those under edit
       print student.height == "N/A" ? "#{ student.name }'s height".yellow + ": " : 
                                       "#{ student.name }'s actual height".yellow + ": "
       height = gets.chomp
     end
-    height
+    height.to_f
   end
 
   def validate_country_of_birth(student, country_of_birth)
@@ -212,6 +217,7 @@ module Validation
       did_you_mean?(country_of_birth)
       puts ("Please enter #{ student.name }'s country of birth").blue
       abort?
+      #  semantic check for new students and those under edit
       print student.country_of_birth == "N/A" ? "#{ student.name }'s country of birth".yellow + ": " : 
                                                 "#{ student.name }'s actual country of birth".yellow + ": "
       country_of_birth = gets.chomp.capitalize_each
@@ -226,6 +232,7 @@ module Validation
       puts "Invalid entry."
       puts ("Please enter #{ student.name }'s disability status (").blue + " true " + "/".blue + " false " + ")".blue
       abort?
+      #  semantic check for new students and those under edit
       print student.is_disabled == "N/A" ? ("#{ student.name }'s disability status").yellow + ": " : 
                                             "#{ student.name }'s actual disability status".yellow + ": "
       disability_status = gets.chomp.downcase
@@ -589,7 +596,7 @@ class Cohort
       puts short_bar
 
       # get another name from the user
-      name = gets.chomp
+      name = gets.chomp.capitalize_each
     end
     return false
   end
@@ -786,9 +793,9 @@ def interface(academy)
       academy.all_cohorts
 
     when 3
-      puts short_bar
+      puts long_bar
       puts " "
-      puts "Which cohort would you like to view?".bold.blue
+      puts "Which cohort would you like to view? ( ".bold.blue + "enter a month" + " )".bold.blue
       puts "(press return to go back to menu)".italic
 
       academy.cohorts.each.with_index { |cohort, i|
@@ -796,20 +803,24 @@ def interface(academy)
       }
       cohort_choice = gets.chomp.capitalize
       until existing_cohorts.include?(cohort_choice.capitalize)
-        puts "Invalid entry. Please enter an existing cohort"
-        puts "(press return to go back to menu)"
+        puts "----"
+        puts "Invalid entry.".italic.red
+        puts "Please enter an existing cohort month".bold.blue
+        puts "(press return to go back to menu)".italic
         academy.cohorts.each.with_index { |cohort, i|
           puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
         }
         cohort_choice = gets.chomp.capitalize
       end
-      puts "Displaying #{ cohort_choice } cohort.."
+      puts long_bar
+      puts " "
+      puts ("Displaying #{ cohort_choice } cohort..").italic.blue
       puts academy.cohorts.select { |cohort| cohort.roster if cohort.month == cohort_choice }
 
     when 4
       puts long_bar
-      puts "Displaying all #{ academy.name } student profiles by cohort.."
       puts " "
+      puts ("Displaying all #{ academy.name } student profiles by cohort..").italic.blue
       i = 0
       academy.cohorts.each { |cohort| 
         #  only displays if cohort has students
@@ -827,7 +838,8 @@ def interface(academy)
 
     when 5
       puts long_bar
-      puts "Displaying all student profiles for #{ academy.name }.."
+      puts " "
+      puts ("Displaying all student profiles for #{ academy.name }..").italic.blue
       puts " "
       i = 0
       academy.cohorts.each { |cohort| 
@@ -838,19 +850,23 @@ def interface(academy)
         }
       }
       puts " "
+
     when 6
       puts long_bar
-      puts "Adding a new student.."
-      puts "Which cohort would you like to add this student to?"
-      puts "(press return to go back to menu)"
+      puts " "
+      puts "Adding a new student..".italic.blue
+      puts "Which cohort would you like to add this student to?".bold.blue
+      puts "(press return to go back to menu)".italic
       #  puts list of existing cohorts (currently order insensitive)
       academy.cohorts.each.with_index { |cohort, i|
         puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
       }
       cohort_choice = gets.chomp.capitalize
       until existing_cohorts.include?(cohort_choice)
-        puts "Invalid entry. Please enter an existing cohort"
-        puts "(press return to go back to menu)"
+        puts "----"
+        puts "Invalid entry.".italic.red
+        puts "Please enter an existing cohort".blue
+        puts "(press return to go back to menu)".italic
         academy.cohorts.each.with_index { |cohort, i|
           puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
         }
@@ -862,28 +878,34 @@ def interface(academy)
       
     when 7
       puts long_bar
-      puts "Deleting a student.."
-      puts "Do you have the student's ID to hand? ( Y / N )"
-      puts "(press return to go back to menu)"
+      puts " "
+      puts "Deleting a student..".italic.blue
+      puts "Do you have the student's ID to hand? (".blue + " Y " + "/".blue + " N " + ")".blue
+      puts "(press return to go back to menu)".italic
       yesno = gets.chomp.upcase
       until ["Y", "N"].include?(yesno)
+        puts "----"
         puts "Invalid Entry.".italic.red
         puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
-        puts "(press return to go back to menu)"
+        puts "(press return to go back to menu)".italic
         yesno = gets.chomp.upcase
       end
       if yesno == "N"
-        puts "Displaying all existing students.."
+        puts long_bar
+        puts " "
+        puts "Displaying all existing students..".italic.blue
         academy.all_students
       end
       sure = ""  #  repeat until user is sure of deletion
       until sure == "Y"
-        puts "Enter the ID of the student you would like to delete"
-        puts "(press 'return' to go back to menu)"
+        puts " "
+        puts "Enter the ID of the student you would like to delete".bold.blue
+        puts "(press 'return' to go back to menu)".italic
         
         #  get an ID, keeps asking until ID is valid
         to_delete = gets.chomp
         until all_ids.include?(to_delete)
+          puts "----"
           puts "Invalid entry.".italic.red
           puts "Please enter a valid ID".blue
           puts "(press 'return' to go back to menu)".italic
@@ -894,9 +916,10 @@ def interface(academy)
           profile if profile.student_id == to_delete
         }[0]
         puts "You are about to remove Student ID: ".blue + "#{ to_delete }" + " (".blue + "#{ selected_student.name }" + ")".blue
-        puts "Are you sure? (".blue + " Y " + "/".blue + " N " + ")".blue
+        puts "Are you sure?".italic.blue + "(".blue + " Y " + "/".blue + " N " + ")".blue
         sure = gets.chomp.upcase
         until ["Y", "N"].include?(sure)
+          puts "----"
           puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
           sure = gets.chomp.upcase
         end
@@ -918,6 +941,7 @@ def interface(academy)
       puts "(press return to go back to menu)".italic
       yesno = gets.chomp.upcase
       until ["Y", "N"].include?(yesno)
+        puts "----"
         puts "Invalid Entry.".italic.red
         puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
         puts "(press return to go back to menu)".italic
@@ -935,6 +959,7 @@ def interface(academy)
         puts "(press 'return' to go back to menu)".italic
         student_to_move = gets.chomp
         until all_ids.include?(student_to_move)
+          puts "----"
           puts "Invalid entry.".italic.red
           puts "Please enter a valid ID".blue
           puts "(press 'return' to go back to menu)".italic
@@ -961,6 +986,7 @@ def interface(academy)
         #  until target is a valid and seperate cohort
         until existing_cohorts.include?(target_cohort) && selected_student.cohort != target_cohort
           if selected_student.cohort == target_cohort
+            puts "----"
             puts ("#{ selected_student.name } is already in the #{ target_cohort } cohort.").blue
             puts "Please enter another cohort".blue
             puts "(press return to go back to menu)".italic
@@ -969,6 +995,7 @@ def interface(academy)
             }
             target_cohort = gets.chomp.capitalize
           else
+            puts "----"
             puts "Invalid entry.".italic.red
             puts "Please enter an existing cohort".blue
             puts "(press return to go back to menu)".italic
@@ -984,6 +1011,7 @@ def interface(academy)
         puts "Are you sure?".bold.italic.blue + " (".bold.blue + " Y " + "/".bold.blue + " N " + ")".bold.blue
         sure = gets.chomp.upcase
         until ["Y", "N"].include?(sure)
+          puts "----"
           puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
           sure = gets.chomp.upcase
         end
@@ -997,6 +1025,7 @@ def interface(academy)
           puts ("Done. #{ selected_student.name } has been moved to the #{ target_cohort.month } cohort.").blue
           academy.all_cohorts
         else
+          puts "----"
           puts "aborted".italic.red
         end
       end
@@ -1013,6 +1042,7 @@ def interface(academy)
       cohort_to_search = gets.chomp.capitalize
 
       until existing_cohorts.include?(cohort_to_search)
+        puts "----"
         puts "Invalid entry.".italic.red
         puts "Please enter a valid cohort month".blue
         puts "(press 'return' to go back to menu)".italic
@@ -1035,7 +1065,8 @@ def interface(academy)
       #  get choice
       filter_by = gets.chomp
       until filter_by.scan(/\D/).empty? && (1..2).to_a.include?(filter_by.to_i)
-        puts "Invalid option".italic.red
+        puts "----"
+        puts "Invalid entry.".italic.red
         puts "How would you like to filter results? ( ".bold.blue + "enter a number" + " )".bold.blue
         puts "1)  ".bold.yellow + "Initial".bold
         puts "2)  ".bold.yellow + "Length".bold
@@ -1053,6 +1084,7 @@ def interface(academy)
         puts "(press 'return' to go back to menu)".italic
         initial = gets.chomp.upcase
         until initial.length == 1 && (/[a-zA-Z]/).match(initial)
+          puts "----"
           puts "Invalid entry.".italic.red
           puts "Please enter a single letter".blue
           puts "(press 'return' to go back to menu)".italic
@@ -1070,6 +1102,7 @@ def interface(academy)
         puts "(press 'return' to go back to menu)".italic
         limit = gets.chomp
         until limit.to_i > 0 && limit.scan(/\D/).empty?
+          puts "----"
           puts "Invalid entry.".italic.red
           puts "Please enter a ".blue + "number" + " for the maximum name length".blue
           puts "(press 'return' to go back to menu)".italic
@@ -1094,13 +1127,14 @@ def interface(academy)
       puts long_bar
       puts " "
       puts ("Searching #{ academy.name }'s entire roster..").blue
-      puts "How would you like to filter results? (".bold.blue + "enter a number" + ")".bold.blue
+      puts "How would you like to filter results? ( ".bold.blue + "enter a number" + " )".bold.blue
       puts "1)  ".bold.yellow + "Initial".bold
       puts "2)  ".bold.yellow + "Length".bold
       puts "(press 'return' to go back to menu)".italic
       filter_by = gets.chomp.to_i
       until filter_by.scan(/\D/).empty? && (1..2).to_a.include?(filter_by)
-        puts "Invalid option".italic.red
+        puts "----"
+        puts "Invalid entry.".italic.red
         puts "Please enter one of the following options:".blue
         puts "1)  ".bold.yellow + "Initial".bold
         puts "2)  ".bold.yellow + "Length".bold
@@ -1116,6 +1150,7 @@ def interface(academy)
         puts "(press 'return' to go back to menu)".italic
         initial = gets.chomp.upcase
         until initial.length == 1 && (/[a-zA-Z]/).match(initial)
+          puts "----"
           puts "Invalid entry.".italic.red
           puts "Please enter a single letter".blue
           puts "(press 'return' to go back to menu)".italic
@@ -1132,6 +1167,7 @@ def interface(academy)
         puts "(press 'return' to go back to menu)".italic
         limit = gets.chomp
         until limit.to_i > 0 && limit.scan(/\D/).empty?
+          puts "----"
           puts "Invalid entry.".italic.red
           puts "Please enter a number for the maximum name length".blue
           puts "(press 'return' to go back to menu)".italic
@@ -1153,6 +1189,7 @@ def interface(academy)
       student_choice = gets.chomp
       student_to_edit = all_profiles.select { |student| student if student.student_id == student_choice }[0]
       until student_to_edit  #  exists
+        puts "----"
         puts "Invalid entry.".italic.red
         puts "Please enter a valid ID".blue
         puts "(press return to go back to menu)".italic
@@ -1175,6 +1212,7 @@ def interface(academy)
           puts "(press return to go back to menu)".italic
           yesno = gets.chomp.upcase
         else
+          puts "----"
           puts "Invalid entry."
           puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
           yesno = gets.chomp.upcase
@@ -1193,11 +1231,13 @@ def interface(academy)
       until actual_months.include?(new_month.downcase.to_sym) && 
             !existing_cohorts.include?(new_month.capitalize)
         if existing_cohorts.include?(new_month.capitalize)
-          puts ("A #{ new_month.capitalize } Cohort already exists").italic.red
+          puts "----"
+          puts "A ".blue + "#{ new_month.capitalize }".bold.blue + " Cohort already exists".blue
           puts "Enter a different month to create a new Cohort".blue
           puts "(press return to go back to menu)".italic
           new_month = gets.chomp
         else
+          puts "----"
           puts "Invalid month.".italic.red
           puts "Enter a valid month to create a new Cohort".blue
           puts "(press return to go back to menu)".italic
@@ -1223,6 +1263,7 @@ def interface(academy)
       puts "Are you sure you want to do this? ".italic + "(".blue + " Y " + "/".blue + " N " + ")".blue
       sure = gets.chomp.upcase
       until ["Y", "N"].include?(sure)
+        puts "----"
         puts "Invalid entry.".italic.red
         puts "Please enter".blue + "Y" + " or ".blue + "N" + " to confirm".blue
         sure = gets.chomp.upcase
@@ -1236,6 +1277,7 @@ def interface(academy)
         }
         target_cohort = gets.chomp.capitalize
         until existing_cohorts.include?(target_cohort)
+          puts "----"
           puts "Invalid entry.".italic.red
           puts "Please enter a valid cohort".blue
           puts "(press return to go back to menu)".italic
@@ -1249,6 +1291,7 @@ def interface(academy)
         puts ("Deleting #{ academy.name }'s #{ target_cohort } cohort. Type ").bold.blue + "confirm".bold + " to confirm ( ".bold.blue + "or 'R' to abort".italic + " )".blue
         confirm = gets.chomp.downcase
         until ["confirm", "r"].include?(confirm)
+          puts "----"
           puts "Invalid entry.".italic.red
           puts ("Type 'confirm' to confirm deletion ( ").blue + "or 'R' to abort".italic + " )".blue
           target_cohort = gets.chomp.capitalize
@@ -1275,6 +1318,7 @@ def interface(academy)
           #  display changes
           academy.all_cohorts
         elsif confirm == "r"
+          puts "----"
           puts "aborted".italic.red
           puts " "
         end
