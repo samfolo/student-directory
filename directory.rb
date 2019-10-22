@@ -771,6 +771,7 @@ def interface(academy)
     choice = choice.to_i if choice.scan(/\D/).empty?
     until (1..13).to_a.include?(choice)
       puts "Invalid choice. Please pick an option from the menu".red
+      print "Option".yellow, ": "
       choice = gets.chomp.to_i
     end
 
@@ -1022,7 +1023,7 @@ def interface(academy)
               puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
             }
             target_cohort = gets.chomp
-            if target_cohort != ""  #  to menu (outer loop)
+            if target_cohort != ""  #  to menu (inner loop)
               target_cohort = target_cohort.capitalize
               #  until target is a valid and seperate cohort
               until existing_cohorts.include?(target_cohort) && selected_student.cohort != target_cohort
@@ -1076,7 +1077,7 @@ def interface(academy)
                 end
               end
             end
-            break if target_cohort == ""  #  to menu (outer loop)
+            break if target_cohort == ""  #  to menu (outer outer loop)
           end
         end
       end
@@ -1090,80 +1091,102 @@ def interface(academy)
       academy.cohorts.each.with_index { |cohort, i|
         puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
       }
-      cohort_to_search = gets.chomp.capitalize
-
-      until existing_cohorts.include?(cohort_to_search)
-        puts "----"
-        puts "Invalid entry.".italic.red
-        puts "Please enter a valid cohort month".blue
-        puts "(press 'return' to go back to menu)".italic
-        academy.cohorts.each.with_index { |cohort, i|
-          puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-        }
-        cohort_to_search = gets.chomp.capitalize
-      end
-      #  locate cohort in question
-      filter_cohort = academy.cohorts.select{ |cohort| 
-                        cohort if cohort.month == cohort_to_search 
-                      }[0]
-      puts long_bar
-      puts " "
-      puts ("Searching through #{ cohort_to_search } cohort..").italic.blue
-      puts "How would you like to filter results? ( ".bold.blue + "enter a number" + " )".bold.blue
-      puts "(press 'return' to go back to menu)".italic
-      puts "1)  ".bold.yellow + "Initial".bold
-      puts "2)  ".bold.yellow + "Length".bold
-      #  get choice
-      filter_by = gets.chomp
-      until filter_by.scan(/\D/).empty? && (1..2).to_a.include?(filter_by.to_i)
-        puts "----"
-        puts "Invalid entry.".italic.red
-        puts "How would you like to filter results? ( ".bold.blue + "enter a number" + " )".bold.blue
-        puts "(press 'return' to go back to menu)".italic
-        puts "1)  ".bold.yellow + "Initial".bold
-        puts "2)  ".bold.yellow + "Length".bold
-        filter_by = gets.chomp
-      end
-
-      filter_by = filter_by.to_i
-
-      case filter_by
-      when 1
-        puts long_bar
-        puts " "
-        puts "Enter an initial".bold.blue
-        puts "(press 'return' to go back to menu)".italic
-        initial = gets.chomp.upcase
-        until initial.length == 1 && (/[a-zA-Z]/).match(initial)
+      cohort_to_search = gets.chomp
+      if cohort_to_search != ""  #  to menu
+        until existing_cohorts.include?(cohort_to_search.capitalize)
           puts "----"
           puts "Invalid entry.".italic.red
-          puts "Please enter a single letter".blue
+          puts "Please enter a valid cohort month".blue
           puts "(press 'return' to go back to menu)".italic
-          initial = gets.chomp.upcase
+          academy.cohorts.each.with_index { |cohort, i|
+            puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
+          }
+          cohort_to_search = gets.chomp
+          break if cohort_to_search == ""  #  to menu
         end
-        puts long_bar
-        puts " "
-        puts "Filtering students by initial ".italic.blue + "'#{ initial }'".bold.italic.blue + "..".italic.blue
-        puts ("Results for #{ academy.name }'s #{ filter_cohort.month } cohort").blue
-        filter_cohort.by_initial(initial)
-      when 2
-        puts long_bar
-        puts " "
-        puts "Enter a maximum name length ( ".bold.blue + "number" + " )".bold.blue
-        puts "(press 'return' to go back to menu)".italic
-        limit = gets.chomp
-        until limit.to_i > 0 && limit.scan(/\D/).empty?
-          puts "----"
-          puts "Invalid entry.".italic.red
-          puts "Please enter an integer for the maximum name length".blue
+        if cohort_to_search != ""  #  to menu
+          cohort_to_search = cohort_to_search.capitalize
+          #  locate cohort in question
+          filter_cohort = academy.cohorts.select{ |cohort| 
+                            cohort if cohort.month == cohort_to_search 
+                          }[0]
+          puts long_bar
+          puts " "
+          puts ("Searching through #{ cohort_to_search } cohort..").italic.blue
+          puts "How would you like to filter results? ( ".bold.blue + "enter a number" + " )".bold.blue
           puts "(press 'return' to go back to menu)".italic
-          limit = gets.chomp
+          puts "1)  ".bold.yellow + "Initial".bold
+          puts "2)  ".bold.yellow + "Length".bold
+          #  get choice
+          filter_by = gets.chomp
+          if filter_by != ""  #  to menu
+            until filter_by.scan(/\D/).empty? && (1..2).to_a.include?(filter_by.to_i)
+              puts "----"
+              puts "Invalid entry.".italic.red
+              puts "How would you like to filter results? ( ".bold.blue + "enter a number" + " )".bold.blue
+              puts "(press 'return' to go back to menu)".italic
+              puts "1)  ".bold.yellow + "Initial".bold
+              puts "2)  ".bold.yellow + "Length".bold
+              filter_by = gets.chomp
+              break if filter_by == ""
+            end
+            if filter_by != ""  #  to menu
+              filter_by = filter_by.to_i
+
+              case filter_by
+              when 1
+                puts long_bar
+                puts " "
+                puts "Enter an initial".bold.blue
+                puts "(press 'return' to go back to menu)".italic
+                initial = gets.chomp
+                if initial != ""  #  to menu
+                  until initial.length == 1 && (/[a-zA-Z]/).match(initial.upcase)
+                    puts "----"
+                    puts "Invalid entry.".italic.red
+                    puts "Please enter a single letter".blue
+                    puts "(press 'return' to go back to menu)".italic
+                    initial = gets.chomp
+                    break if initial == ""
+                  end
+                  if initial != ""
+                    initial = initial.upcase
+                    puts long_bar
+                    puts " "
+                    puts "Filtering students by initial ".italic.blue + "'#{ initial }'".bold.italic.blue + "..".italic.blue
+                    puts ("Results for #{ academy.name }'s #{ filter_cohort.month } cohort").blue
+                    filter_cohort.by_initial(initial)
+                  end
+                end
+
+              when 2
+                puts long_bar
+                puts " "
+                puts "Enter a maximum name length ( ".bold.blue + "number" + " )".bold.blue
+                puts "(press 'return' to go back to menu)".italic
+                limit = gets.chomp
+                if limit != ""
+                  until limit.to_i > 0 && limit.scan(/\D/).empty?
+                    puts "----"
+                    puts "Invalid entry.".italic.red
+                    puts "Please enter an integer for the maximum name length".blue
+                    puts "(press 'return' to go back to menu)".italic
+                    limit = gets.chomp
+                    break if limit == ""
+                  end
+                  if limit != ""
+                    puts long_bar
+                    puts " "
+                    puts "Filtering #{ filter_cohort.month } cohort names with at most ".italic.blue + "#{ limit }".bold.italic.blue + " letters..".italic.blue
+                    puts ("Results for #{ academy.name }'s #{ filter_cohort.month } cohort").blue
+                    filter_cohort.by_length(limit.to_i)
+                  end
+                end
+
+              end
+            end
+          end
         end
-        puts long_bar
-        puts " "
-        puts "Filtering #{ filter_cohort.month } cohort names with at most ".italic.blue + "#{ limit }".bold.italic.blue + " letters..".italic.blue
-        puts ("Results for #{ academy.name }'s #{ filter_cohort.month } cohort").blue
-        filter_cohort.by_length(limit.to_i)
       end
       
     when 10
@@ -1183,54 +1206,71 @@ def interface(academy)
       puts "2)  ".bold.yellow + "Length".bold
       puts "(press 'return' to go back to menu)".italic
       filter_by = gets.chomp
-      until filter_by.scan(/\D/).empty? && (1..2).to_a.include?(filter_by.to_i)
-        puts "----"
-        puts "Invalid entry.".italic.red
-        puts "Please enter one of the following options:".blue
-        puts "1)  ".bold.yellow + "Initial".bold
-        puts "2)  ".bold.yellow + "Length".bold
-        puts "(press 'return' to go back to menu)".italic
-        filter_by = gets.chomp
-      end
+      if filter_by != ""  #  to menu
+        until filter_by.scan(/\D/).empty? && (1..2).to_a.include?(filter_by.to_i)
+          puts "----"
+          puts "Invalid entry.".italic.red
+          puts "Please enter one of the following options:".blue
+          puts "1)  ".bold.yellow + "Initial".bold
+          puts "2)  ".bold.yellow + "Length".bold
+          puts "(press 'return' to go back to menu)".italic
+          filter_by = gets.chomp
+          break if filter_by == ""  #  to menu
+        end
+        if filter_by != ""  #  to menu
+          filter_by = filter_by.to_i
+          case filter_by
+          when 1
+            puts long_bar
+            puts " "
+            puts "Enter an initial".bold.blue
+            puts "(press 'return' to go back to menu)".italic
+            initial = gets.chomp
+            if initial != ""  #  to menu
+              until initial.length == 1 && (/[a-zA-Z]/).match(initial.upcase)
+                puts "----"
+                puts "Invalid entry.".italic.red
+                puts "Please enter a single letter".blue
+                puts "(press 'return' to go back to menu)".italic
+                initial = gets.chomp
+                break if initial == ""  #  to menu
+              end
+              if initial != ""  #  to menu
+                initial = initial.upcase
+                puts long_bar
+                " "
+                puts "Filtering students by initial ".italic.blue + "'#{ initial }'".bold.italic.blue + "..".italic.blue
+                puts ("Results for #{ academy.name }").blue
+                all.by_initial(initial)
+              end
+            end
 
-      filter_by = filter_by.to_i
-      case filter_by
-      when 1
-        puts long_bar
-        puts " "
-        puts "Enter an initial".bold.blue
-        puts "(press 'return' to go back to menu)".italic
-        initial = gets.chomp.upcase
-        until initial.length == 1 && (/[a-zA-Z]/).match(initial)
-          puts "----"
-          puts "Invalid entry.".italic.red
-          puts "Please enter a single letter".blue
-          puts "(press 'return' to go back to menu)".italic
-          initial = gets.chomp.upcase
+          when 2
+            puts long_bar
+            puts " "
+            puts "Enter a maximum name length ( ".bold.blue + "number" + " )".bold.blue
+            puts "(press 'return' to go back to menu)".italic
+            limit = gets.chomp
+            if limit != ""  #  to menu
+              until limit.scan(/\D/).empty? && limit.to_i > 0 
+                puts "----"
+                puts "Invalid entry.".italic.red
+                puts "Please enter an integer for the maximum name length".blue
+                puts "(press 'return' to go back to menu)".italic
+                limit = gets.chomp
+                break if limit == ""  #  to menu
+              end
+              if limit != ""  #  to menu
+                puts long_bar
+                puts " "
+                puts "Filtering student names with at most ".italic.blue + "#{ limit }".bold.italic.blue + " letters..".italic.blue
+                puts ("Results for #{ academy.name } ---").blue
+                all.by_length(limit.to_i)
+              end
+            end
+
+          end
         end
-        puts long_bar
-        " "
-        puts "Filtering students by initial ".italic.blue + "'#{ initial }'".bold.italic.blue + "..".italic.blue
-        puts ("Results for #{ academy.name }").blue
-        all.by_initial(initial)
-      when 2
-        puts long_bar
-        puts " "
-        puts "Enter a maximum name length ( ".bold.blue + "number" + " )".bold.blue
-        puts "(press 'return' to go back to menu)".italic
-        limit = gets.chomp
-        until limit.scan(/\D/).empty? && limit.to_i > 0 
-          puts "----"
-          puts "Invalid entry.".italic.red
-          puts "Please enter an integer for the maximum name length".blue
-          puts "(press 'return' to go back to menu)".italic
-          limit = gets.chomp
-        end
-        puts long_bar
-        puts " "
-        puts "Filtering student names with at most ".italic.blue + "#{ limit }".bold.italic.blue + " letters..".italic.blue
-        puts ("Results for #{ academy.name } ---").blue
-        all.by_length(limit.to_i)
       end
 
     when 11
@@ -1241,34 +1281,39 @@ def interface(academy)
       puts "Which student would you like to edit? ( ".bold.blue + "enter an ID" + " )".bold.blue
       puts "(press return to go back to menu)".italic
       student_choice = gets.chomp
-      student_to_edit = all_profiles.select { |student| student if student.student_id == student_choice }[0]
-      until student_to_edit  #  exists
-        puts "----"
-        puts "Invalid entry.".italic.red
-        puts "Please enter a valid ID".blue
-        puts "(press return to go back to menu)".italic
-        student_choice = gets.chomp
+      if student_choice != ""  #  to menu
         student_to_edit = all_profiles.select { |student| student if student.student_id == student_choice }[0]
-      end
-      puts short_bar
-      student_to_edit.edit_student
-      puts " "
-      #  repeat edit mode for student until user exits
-      puts ("Would you like to edit another attribute for #{ student_to_edit.name }? (").blue + " Y " + "/".blue + " N " + ")".blue
-      yesno = gets.chomp.upcase
-      until yesno == "N"
-        if yesno == "Y"
+        until student_to_edit  #  exists
+          puts "----"
+          puts "Invalid entry.".italic.red
+          puts "Please enter a valid ID".blue
+          puts "(press return to go back to menu)".italic
+          student_choice = gets.chomp
+          break if student_choice == ""  #  to menu
+          student_to_edit = all_profiles.select { |student| student if student.student_id == student_choice }[0]
+        end
+        if student_choice != ""  #  to menu
           puts short_bar
           student_to_edit.edit_student
           puts " "
+          #  repeat edit mode for student until user exits
           puts ("Would you like to edit another attribute for #{ student_to_edit.name }? (").blue + " Y " + "/".blue + " N " + ")".blue
-          puts "(press return to go back to menu)".italic
           yesno = gets.chomp.upcase
-        else
-          puts "----"
-          puts "Invalid entry."
-          puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
-          yesno = gets.chomp.upcase
+          until yesno == "N"
+            if yesno == "Y"
+              puts short_bar
+              student_to_edit.edit_student
+              puts " "
+              puts ("Would you like to edit another attribute for #{ student_to_edit.name }? (").blue + " Y " + "/".blue + " N " + ")".blue
+              puts "(press return to go back to menu)".italic
+              yesno = gets.chomp.upcase
+            else
+              puts "----"
+              puts "Invalid entry."
+              puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
+              yesno = gets.chomp.upcase
+            end
+          end
         end
       end
     
@@ -1276,42 +1321,48 @@ def interface(academy)
       puts long_bar
       puts " "
       puts "Creating a new cohort..".italic.blue
-      puts "(press return to go back to menu)".italic
       puts "Enter a valid month to create a new cohort.".bold.blue
+      puts "(press return to go back to menu)".italic
       puts "Existing cohorts:".bold.blue
       academy.cohorts.each.with_index { |cohort, i|
         puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
       }
       new_month = gets.chomp
-      #  check if entry is a valid month (Validation mixin) 
-      #  and if cohort already exists
-      until actual_months.include?(new_month.downcase.to_sym) && 
-            !existing_cohorts.include?(new_month.capitalize)
-        if existing_cohorts.include?(new_month.capitalize)
-          puts "----"
-          puts "A ".blue + "#{ new_month.capitalize }".bold.blue + " Cohort already exists".blue
-          puts "Enter a different month to create a new Cohort".blue
-          puts "(press return to go back to menu)".italic
-          new_month = gets.chomp
-        else
-          puts "----"
-          puts "Invalid month.".italic.red
-          puts "Enter a valid month to create a new Cohort".blue
-          puts "(press return to go back to menu)".italic
-          new_month = gets.chomp
+      if new_month != ""  #  to menu
+        #  check if entry is a valid month (Validation mixin) 
+        #  and if cohort already exists
+        until actual_months.include?(new_month.downcase.to_sym) && 
+              !existing_cohorts.include?(new_month.capitalize)
+          if existing_cohorts.include?(new_month.capitalize)
+            puts "----"
+            puts "A ".blue + "#{ new_month.capitalize }".bold.blue + " Cohort already exists".blue
+            puts "Enter a different month to create a new Cohort".blue
+            puts "(press return to go back to menu)".italic
+            new_month = gets.chomp
+            break if new_month == ""  #  to menu
+          else
+            puts "----"
+            puts "Invalid month.".italic.red
+            puts "Enter a valid month to create a new Cohort".blue
+            puts "(press return to go back to menu)".italic
+            new_month = gets.chomp
+            break if new_month == ""  #  to menu
+          end
+        end
+        if new_month != ""  #  to menu
+          puts long_bar
+          puts " "
+          #  create new cohort and add it to the academy
+          new_cohort = Cohort.new(new_month.capitalize)
+          academy.add_cohort(new_cohort)  #  capitalizes within the method
+          puts "Done.".italic.blue
+          puts "Existing cohorts:".italic.blue
+          academy.cohorts.each.with_index { |cohort, i|
+            puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
+          }
+          puts " "
         end
       end
-      puts long_bar
-      puts " "
-      #  create new cohort and add it to the academy
-      new_cohort = Cohort.new(new_month.capitalize)
-      academy.add_cohort(new_cohort)  #  capitalizes within the method
-      puts "Done.".italic.blue
-      puts "Existing cohorts:".italic.blue
-      academy.cohorts.each.with_index { |cohort, i|
-        puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-      }
-      puts " "
 
     when 13
       #  doesn't allow user to delete if there is only one cohort
@@ -1327,13 +1378,14 @@ def interface(academy)
         puts "Deleting a cohort..".italic.blue
         puts "When a cohort is deleted, all members are redistributed amongst all other existing cohorts.".bold.blue
         puts "Are you sure you want to do this? ".italic.blue + "(".blue + " Y " + "/".blue + " N " + ")".blue
-        sure = gets.chomp.upcase
-        until ["Y", "N"].include?(sure)
+        sure = gets.chomp
+        until ["Y", "y", "N", "n"].include?(sure)
           puts "----"
           puts "Invalid entry.".italic.red
           puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
-          sure = gets.chomp.upcase
+          sure = gets.chomp
         end
+        sure = sure.upcase
         if sure == "Y"
           puts long_bar
           puts "Which cohort would you like to delete? ( ".bold.blue + "enter a month" + " )".bold.blue
@@ -1341,52 +1393,58 @@ def interface(academy)
           academy.cohorts.each.with_index { |cohort, i|
             puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
           }
-          target_cohort = gets.chomp.capitalize
-          until existing_cohorts.include?(target_cohort)
-            puts "----"
-            puts "Invalid entry.".italic.red
-            puts "Please enter a valid cohort month".blue
-            puts "(press return to go back to menu)".italic
-            academy.cohorts.each.with_index { |cohort, i|
-              puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-            }
-            target_cohort = gets.chomp.capitalize
-          end
-          puts long_bar
-          puts " "
-          puts ("Deleting #{ academy.name }'s #{ target_cohort } cohort. Type ").bold.blue + "confirm".bold + " to confirm ( ".bold.blue + "or 'R' to abort".italic + " )".blue
-          confirm = gets.chomp.downcase
-          until ["confirm", "r"].include?(confirm)
-            puts "----"
-            puts "Invalid entry.".italic.red
-            puts "Type ".blue + "confirm" + " to confirm deletion ( ".blue + "or 'R' to abort".italic + " )".blue
-            confirm = gets.chomp.downcase
-          end
-          if confirm == "confirm"
-            puts long_bar
-            puts " "
-            puts "Deleted.".italic.blue
-            #  find target cohort
-            selected_cohort = academy.cohorts.select { |cohort| cohort.month == target_cohort }[0]
-            #  collect all other target cohorts
-            other_cohorts = academy.cohorts.select { |cohort| cohort if cohort.month != target_cohort }
-            #  redistribute students:
-            #  delete target cohort from academy (not serviced in redistribution)
-            academy.cohorts.delete_at(academy.cohorts.index(selected_cohort))
-            #  allocate one student to every other cohort in academy.cohorts array
-            i = 0
-            selected_cohort.students.each { |student| 
-              other_cohorts[i].students.push(student)
-              student.cohort = other_cohorts[i].month
-              i += 1
-              i = 0 if i == other_cohorts.length
-            }
-            #  display changes
-            academy.all_cohorts
-          elsif confirm == "r"
-            puts "----"
-            puts "aborted".italic.red
-            puts " "
+          target_cohort = gets.chomp
+          if target_cohort != ""  #  to menu
+            target_cohort = target_cohort.capitalize
+            until existing_cohorts.include?(target_cohort)
+              puts "----"
+              puts "Invalid entry.".italic.red
+              puts "Please enter a valid cohort month".blue
+              puts "(press return to go back to menu)".italic
+              academy.cohorts.each.with_index { |cohort, i|
+                puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
+              }
+              target_cohort = gets.chomp
+              break if target_cohort == ""  #  to menu
+            end
+            if target_cohort != ""  #  to menu
+              puts long_bar
+              puts " "
+              puts ("Deleting #{ academy.name }'s #{ target_cohort } cohort. Type ").bold.blue + "confirm".bold + " to confirm ( ".bold.blue + "or 'R' to abort".italic + " )".blue
+              confirm = gets.chomp.downcase
+              until ["confirm", "r"].include?(confirm)
+                puts "----"
+                puts "Invalid entry.".italic.red
+                puts "Type ".blue + "confirm" + " to confirm deletion ( ".blue + "or 'R' to abort".italic + " )".blue
+                confirm = gets.chomp.downcase
+              end
+              if confirm == "confirm"
+                puts long_bar
+                puts " "
+                puts "Deleted.".italic.blue
+                #  find target cohort
+                selected_cohort = academy.cohorts.select { |cohort| cohort.month == target_cohort }[0]
+                #  collect all other target cohorts
+                other_cohorts = academy.cohorts.select { |cohort| cohort if cohort.month != target_cohort }
+                #  redistribute students:
+                #  delete target cohort from academy (not serviced in redistribution)
+                academy.cohorts.delete_at(academy.cohorts.index(selected_cohort))
+                #  allocate one student to every other cohort in academy.cohorts array
+                i = 0
+                selected_cohort.students.each { |student| 
+                  other_cohorts[i].students.push(student)
+                  student.cohort = other_cohorts[i].month
+                  i += 1
+                  i = 0 if i == other_cohorts.length
+                }
+                #  display changes
+                academy.all_cohorts
+              elsif confirm == "r"
+                puts "----"
+                puts "aborted".italic.red
+                puts " "
+              end
+            end
           end
         end
       end
