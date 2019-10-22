@@ -42,7 +42,7 @@ module Formatting
   
     removed_prefixes
   end
-  
+
   def long_bar
     "-" * 94
   end
@@ -189,7 +189,7 @@ module Validation
       puts short_bar
       if /^\d*\.?\d*$/.match(height) && height.to_f > 300
         puts "Invalid entry."
-        puts "Due to the events of last year we no longer accept giants to Villains Academy.".blue
+        puts "Due to the events of last year we no longer accept giants to the academy.".blue
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
       elsif /^\d*\.?\d*$/.match(height) && height.to_f < 50
         puts "Invalid entry."
@@ -290,12 +290,18 @@ class Academy
     print_footer
   end
 
+  def resort_cohorts_by_month
+    #  sorts all cohorts by actual_months (array) as and when necessary
+    @cohorts.sort_by! { 
+      |cohort| actual_months.index(cohort.month.downcase.to_sym) 
+    }
+  end
   private
 
   #  header of table
   def print_header
     puts long_bar.blue
-    print ("|" * 23).blue, "The Students of Villains Academy".center(48), ("|" * 23).blue, "\n"
+    print ("|" * 23).blue, "The Students of #{ self.name }".center(48), ("|" * 23).blue, "\n"
     print ("|" * 23).blue, "==== All Students ====".center(48), ("|" * 23).blue, "\n"
     puts long_bar.blue
   end
@@ -477,7 +483,7 @@ class Cohort
   #  header of table
   def print_header
     puts long_bar.darkblue
-    print ("|" * 23).darkblue, "The Students of Villains Academy".center(48), ("|" * 23).darkblue, "\n"
+    print ("|" * 23).darkblue, "The Students of #{ self.academy }".center(48), ("|" * 23).darkblue, "\n"
     print ("|" * 23).darkblue, "-- #{ @month } Cohort --".center(48), ("|" * 23).darkblue, "\n"
     puts long_bar.darkblue
     puts long_bar.darkblue
@@ -788,6 +794,8 @@ def interface(academy)
         all_profiles.push(student)
       }
     }
+    #  in case cohorts are not in order at menu
+    academy.resort_cohorts_by_month
 
     case choice
     when 1
@@ -808,6 +816,7 @@ def interface(academy)
       puts "Which cohort would you like to view? ( ".bold.blue + "enter a month" + " )".bold.blue
       puts "(press return to go back to menu)".italic
 
+      academy.resort_cohorts
       academy.cohorts.each.with_index { |cohort, i|
         puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
       }
@@ -872,14 +881,14 @@ def interface(academy)
       puts "Adding a new student..".italic.blue
       puts "Which cohort would you like to add this student to?".bold.blue
       puts "(press return to go back to menu)".italic
-      #  puts list of existing cohorts (currently order insensitive)
+      #  puts list of existing cohorts
       academy.cohorts.each.with_index { |cohort, i|
         puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
       }
       print "Cohort".yellow, ": "
-      cohort_choice = gets.chomp.capitalize
+      cohort_choice = gets.chomp
       if cohort_choice != ""  #  to menu
-        until existing_cohorts.include?(cohort_choice)
+        until existing_cohorts.include?(cohort_choice.capitalize)
           puts "----"
           puts "Invalid entry.".italic.red
           puts "Please enter an existing cohort month".blue
@@ -888,11 +897,12 @@ def interface(academy)
             puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
           }
           print "Cohort".yellow, ": "
-          cohort_choice = gets.chomp.capitalize
+          cohort_choice = gets.chomp
           break if cohort_choice == ""  #  to menu
         end
         #  begin adding a student to the user choice of cohort
         if cohort_choice != ""
+          cohort_choice = cohort_choice.capitalize
           academy.cohorts.select { |cohort|
             cohort.month == cohort_choice 
           }[0].input_student
@@ -1399,6 +1409,8 @@ def interface(academy)
           academy.add_cohort(new_cohort)  #  capitalizes within the method
           puts "Done.".italic.blue
           puts "Existing cohorts:".italic.blue
+          #  resorts all cohorts before displaying, permanent sorting
+          academy.resort_cohorts_by_month
           academy.cohorts.each.with_index { |cohort, i|
             puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
           }
@@ -1441,7 +1453,7 @@ def interface(academy)
           target_cohort = gets.chomp
           if target_cohort != ""  #  to menu
             target_cohort = target_cohort.capitalize
-            until existing_cohorts.include?(target_cohort)
+            until existing_cohorts.include?(target_cohort.capitalize)
               puts "----"
               puts "Invalid entry.".italic.red
               puts "Please enter a valid cohort month".blue
@@ -1454,6 +1466,7 @@ def interface(academy)
               break if target_cohort == ""  #  to menu
             end
             if target_cohort != ""  #  to menu
+              target_cohort = target_cohort.capitalize
               puts long_bar
               puts " "
               puts ("Deleting #{ academy.name }'s #{ target_cohort } cohort. Type ").bold.blue + "confirm".bold + " to confirm ( ".bold.blue + "or 'R' to abort".italic + " )".blue
@@ -1554,6 +1567,9 @@ va_december.add_student(wicked_witch, terminator, freddy_krueger,
 #  add Cohorts to Academy
 villains_academy.add_cohort(va_november, va_december)
 
+months = ["january", "february", "march", "april", "may"]
+weeks = ["january", "february", "march", "may", "april"]
+print weeks.sort_by { |e| months.index(e) }
 #  start session
 interface(villains_academy)
 
