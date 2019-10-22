@@ -76,11 +76,10 @@ module Formatting
   end
 
   def goodbye
-    puts "-------------".center(51)
-    puts "Goodbye".center(51)
-    puts "-------------".center(51)
-    puts " ".center(50)
-    puts " ".center(50)
+    puts "-------------".center(94)
+    puts "Goodbye".center(94)
+    puts "-------------".center(94)
+    puts " "
   end
 
 end
@@ -781,21 +780,31 @@ def interface(academy)
       choice = gets.chomp.to_i
     end
 
-    #  for reference:
-    #  document the months which already have cohorts
-    existing_cohorts = []
-    academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month) }
-    #  get all profiles and ids in two seperate arrays
-    all_ids = []
-    all_profiles = []
-    academy.cohorts.each { |cohort|
-      cohort.students.each { |student|
-        all_ids.push(student.student_id)
-        all_profiles.push(student)
+    ##  for reference:
+      
+      #  document the months which already have cohorts
+      existing_cohorts = []
+      academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month) }
+      
+      #  get all profiles and ids in two seperate arrays
+      all_ids = []
+      all_profiles = []
+      academy.cohorts.each { |cohort|
+        cohort.students.each { |student|
+          all_ids.push(student.student_id)
+          all_profiles.push(student)
+        }
       }
-    }
-    #  in case cohorts are not in order at menu
-    academy.resort_cohorts_by_month
+
+      #  list existing cohorts with measured whitespace
+      def list_cohort_months(academy)
+        academy.cohorts.each.with_index { |cohort, i|
+          puts ("#{ i + 1 })".bold.yellow) + " " * (3 - (i + 1).digits.length) + ("#{ cohort.month }").bold 
+        }
+      end
+
+      #  in case cohorts are not in order at menu
+      academy.resort_cohorts_by_month
 
     case choice
     #  view all students in the academy in one list
@@ -819,9 +828,7 @@ def interface(academy)
       puts "Which cohort would you like to view? ( ".bold.blue + "enter a month" + " )".bold.blue
       puts "(press return to go back to menu)".italic
       #  puts list of cohorts to choose from
-      academy.cohorts.each.with_index { |cohort, i|
-        puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-      }
+      list_cohort_months(academy)
       print "Enter a month".yellow, ": "
       cohort_choice = gets.chomp.capitalize
       if cohort_choice != ""  #  main menu if user presses return
@@ -830,9 +837,7 @@ def interface(academy)
           puts "Invalid entry.".italic.red
           puts "Please enter an existing cohort month".blue
           puts "(press return to go back to menu)".italic
-          academy.cohorts.each.with_index { |cohort, i|
-            puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-          }
+          list_cohort_months(academy)
           print "Enter a month".yellow, ": "
           cohort_choice = gets.chomp.capitalize
           break if cohort_choice == ""  # main menu if user presses return
@@ -886,10 +891,7 @@ def interface(academy)
       puts "Adding a new student..".italic.blue
       puts "Which cohort would you like to add this student to?".bold.blue
       puts "(press return to go back to menu)".italic
-      #  puts list of existing cohorts
-      academy.cohorts.each.with_index { |cohort, i|
-        puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-      }
+      list_cohort_months(academy)
       print "Enter a month".yellow, ": "
       cohort_choice = gets.chomp
       if cohort_choice != ""  #  to menu
@@ -898,9 +900,7 @@ def interface(academy)
           puts "Invalid entry.".italic.red
           puts "Please enter an existing cohort month".blue
           puts "(press return to go back to menu)".italic
-          academy.cohorts.each.with_index { |cohort, i|
-            puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-          }
+          list_cohort_months(academy)
           print "Enter a month".yellow, ": "
           cohort_choice = gets.chomp
           break if cohort_choice == ""  #  to menu
@@ -1064,7 +1064,7 @@ def interface(academy)
             puts "(press 'return' to go back to menu)".italic
             #  only puts possible moves (can't move to current cohort)
             academy.cohorts.each.with_index { |cohort, i|
-              puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
+              puts ("#{ i + 1 })".bold.yellow) + " " * (3 - (i + 1).digits.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
             }
             print "Enter a month".yellow, ": "
             target_cohort = gets.chomp
@@ -1078,7 +1078,7 @@ def interface(academy)
                   puts "Please enter another cohort".blue
                   puts "(press return to go back to menu)".italic
                   academy.cohorts.each.with_index { |cohort, i|
-                    puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
+                    puts ("#{ i + 1 })".bold.yellow) + " " * (3 - (i + 1).digits.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
                   }
                   print "Enter a month".yellow, ": "
                   target_cohort = gets.chomp
@@ -1089,7 +1089,7 @@ def interface(academy)
                   puts "Please enter an existing cohort month".blue
                   puts "(press return to go back to menu)".italic
                   academy.cohorts.each.with_index { |cohort, i|
-                    puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
+                    puts ("#{ i + 1 })".bold.yellow) + " " * (3 - (i + 1).digits.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
                   }
                   print "Enter a month".yellow, ": "
                   target_cohort = gets.chomp
@@ -1152,9 +1152,7 @@ def interface(academy)
       puts "Searching at cohort level..".italic.blue
       puts "Which cohort would you like to search? ( ".bold.blue + "enter a month" + " )".bold.blue
       puts "(press 'return' to go back to menu)".italic
-      academy.cohorts.each.with_index { |cohort, i|
-        puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-      }
+      list_cohort_months(academy)
       print "Enter a month".yellow, ": "
       cohort_to_search = gets.chomp
       if cohort_to_search != ""  #  to menu
@@ -1163,9 +1161,7 @@ def interface(academy)
           puts "Invalid entry.".italic.red
           puts "Please enter a valid cohort month".blue
           puts "(press 'return' to go back to menu)".italic
-          academy.cohorts.each.with_index { |cohort, i|
-            puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-          }
+          list_cohort_months(academy)
           print "Enter a month".yellow, ": "
           cohort_to_search = gets.chomp
           break if cohort_to_search == ""  #  to menu
@@ -1274,7 +1270,7 @@ def interface(academy)
 
       puts long_bar
       puts " "
-      puts ("Searching #{ academy.name }'s entire roster..").blue
+      puts ("Searching #{ academy.name }'s entire roster..").italic.blue
       puts "How would you like to filter results? ( ".bold.blue + "enter a number" + " )".bold.blue
       puts "1)  ".bold.yellow + "Initial".bold
       puts "2)  ".bold.yellow + "Length".bold
@@ -1389,7 +1385,6 @@ def interface(academy)
               student_to_edit.edit_student
               puts " "
               puts ("Would you like to edit another attribute for #{ student_to_edit.name }? (").blue + " Y " + "/".blue + " N " + ")".blue
-              puts "(press return to go back to menu)".italic
               print "Answer".yellow, ": "
               yesno = gets.chomp.upcase
             else
@@ -1411,9 +1406,7 @@ def interface(academy)
       puts "Enter a valid month to create a new cohort.".bold.blue
       puts "(press return to go back to menu)".italic
       puts "Existing cohorts:".bold.blue
-      academy.cohorts.each.with_index { |cohort, i|
-        puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-      }
+      list_cohort_months(academy)
       print "New cohort".yellow, ": "
       new_month = gets.chomp
       if new_month != ""  #  to menu
@@ -1449,9 +1442,7 @@ def interface(academy)
           puts "Existing cohorts:".italic.blue
           #  resorts all cohorts before displaying, permanent sorting
           academy.resort_cohorts_by_month
-          academy.cohorts.each.with_index { |cohort, i|
-            puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-          }
+          list_cohort_months(academy)
           puts " "
         end
       end
@@ -1483,11 +1474,10 @@ def interface(academy)
         sure = sure.upcase
         if sure == "Y"
           puts long_bar
+          puts " "
           puts "Which cohort would you like to delete? ( ".bold.blue + "enter a month" + " )".bold.blue
           puts "(press return to go back to menu)".italic
-          academy.cohorts.each.with_index { |cohort, i|
-            puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-          }
+          list_cohort_months(academy)
           print "Enter a month".yellow, ": "
           target_cohort = gets.chomp
           if target_cohort != ""  #  to menu
@@ -1497,9 +1487,7 @@ def interface(academy)
               puts "Invalid entry.".italic.red
               puts "Please enter a valid cohort month".blue
               puts "(press return to go back to menu)".italic
-              academy.cohorts.each.with_index { |cohort, i|
-                puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
-              }
+              list_cohort_months(academy)
               print "Enter a month".yellow, ": "
               target_cohort = gets.chomp
               break if target_cohort == ""  #  to menu
@@ -1570,7 +1558,7 @@ def interface(academy)
     print "Option".yellow, ": "
     choice = gets.chomp
   end
-  puts short_bar
+  puts long_bar
   goodbye
 end
 
@@ -1661,7 +1649,7 @@ villains_academy.add_cohort(va_november, va_december)
 #  start session
 interface(villains_academy)
 
-general testing
+#  general testing
 
 #  testing methods in CLI
 ##va_november.roster
