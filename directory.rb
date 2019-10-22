@@ -189,7 +189,7 @@ module Validation
       puts short_bar
       if /^\d*\.?\d*$/.match(height) && height.to_f > 300
         puts "Invalid entry."
-        puts "Due to the events of last year we no longer accept giants to the academy.".blue
+        puts "Due to the events of last year we no longer accept giants into the academy.".blue
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
       elsif /^\d*\.?\d*$/.match(height) && height.to_f < 50
         puts "Invalid entry."
@@ -798,18 +798,21 @@ def interface(academy)
     academy.resort_cohorts_by_month
 
     case choice
+    #  view all students in the academy in one list
     when 1
       puts long_bar
       puts " "
       puts "Displaying all students..".italic.blue
       academy.all_students
 
+    #  view all students in the academy divided into their cohorts
     when 2
       puts long_bar
       puts " "
       puts "Displaying all cohorts..".italic.blue
       academy.all_cohorts
 
+    #  view all students in a particular cohort
     when 3
       puts long_bar
       puts " "
@@ -840,6 +843,7 @@ def interface(academy)
         puts academy.cohorts.select { |cohort| cohort.roster if cohort.month == cohort_choice }
       end
 
+    #  display student profiles at cohort level (divided by month)
     when 4
       puts long_bar
       puts " "
@@ -859,6 +863,7 @@ def interface(academy)
         end
       }
 
+    #  display student profiles at academy level
     when 5
       puts long_bar
       puts " "
@@ -874,6 +879,7 @@ def interface(academy)
       }
       puts " "
 
+    #  add a new student (fill in a form)
     when 6
       puts long_bar
       puts " "
@@ -920,6 +926,7 @@ def interface(academy)
         end
       end
 
+    #  delete a student from the academy
     when 7
       puts long_bar
       puts " "
@@ -996,7 +1003,8 @@ def interface(academy)
           end
         end
       end
-        
+    
+    #  move student from one cohort to another
     when 8
       puts long_bar
       puts " "
@@ -1136,6 +1144,8 @@ def interface(academy)
         end
       end
 
+    #  filter students by either initial or maximum name length 
+    #  at cohort level (can add more options if necessary) 
     when 9
       puts long_bar
       puts " "
@@ -1250,7 +1260,9 @@ def interface(academy)
           end
         end
       end
-      
+
+    #  filter students by either initial or maximum name length 
+    #  at academy level (can add more options if necessary)
     when 10
       #  gather every student from every cohort into temporary cohort
       all = Cohort.new("Whole Academy")
@@ -1340,7 +1352,8 @@ def interface(academy)
           end
         end
       end
-
+    
+    #  edit a student
     when 11
       puts long_bar
       puts " "
@@ -1390,6 +1403,7 @@ def interface(academy)
         end
       end
     
+    #  create a cohort (provided that a cohort with that month doesn't exist)
     when 12
       puts long_bar
       puts " "
@@ -1441,7 +1455,8 @@ def interface(academy)
           puts " "
         end
       end
-
+    
+    #  redistribute the students evenly, considering the 30-students-per-cohort cap
     when 13
       #  doesn't allow user to delete if there is only one cohort
       if academy.cohorts.count == 1
@@ -1509,18 +1524,24 @@ def interface(academy)
                 puts "Deleted.".italic.blue
                 #  find target cohort
                 selected_cohort = academy.cohorts.select { |cohort| cohort.month == target_cohort }[0]
-                #  collect all other target cohorts
-                other_cohorts = academy.cohorts.select { |cohort| cohort if cohort.month != target_cohort }
+                #  collect all other cohorts with space left to accept the defaulting students
+                other_cohorts = academy.cohorts.select { |cohort| cohort if cohort.month != target_cohort && cohort.students.length < 30 }
                 #  redistribute students:
                 #  delete target cohort from academy (not serviced in redistribution)
                 academy.cohorts.delete_at(academy.cohorts.index(selected_cohort))
                 #  allocate one student to every other cohort in academy.cohorts array
                 i = 0
                 selected_cohort.students.each { |student| 
+                  #  push a student to a cohort
                   other_cohorts[i].students.push(student)
+                  #  assign the student their new month attribute
                   student.cohort = other_cohorts[i].month
+                  #  remove a cohort from rotation if the cohort is full after the last reassignment
+                  other_cohorts.delete_at(other_cohorts.index(other_cohorts[i])) if other_cohorts[i].students.length == 30
+                  #  end iteration
                   i += 1
-                  i = 0 if i == other_cohorts.length
+                  #  reset count if all cohorts have been serviced
+                  i = 0 if i >= other_cohorts.length
                 }
                 #  display changes
                 academy.all_cohorts
