@@ -1567,9 +1567,6 @@ va_december.add_student(wicked_witch, terminator, freddy_krueger,
 #  add Cohorts to Academy
 villains_academy.add_cohort(va_november, va_december)
 
-months = ["january", "february", "march", "april", "may"]
-weeks = ["january", "february", "march", "may", "april"]
-print weeks.sort_by { |e| months.index(e) }
 #  start session
 interface(villains_academy)
 
