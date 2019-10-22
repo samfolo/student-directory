@@ -815,8 +815,7 @@ def interface(academy)
       puts " "
       puts "Which cohort would you like to view? ( ".bold.blue + "enter a month" + " )".bold.blue
       puts "(press return to go back to menu)".italic
-
-      academy.resort_cohorts
+      #  puts list of cohorts to choose from
       academy.cohorts.each.with_index { |cohort, i|
         puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
       }
@@ -885,7 +884,7 @@ def interface(academy)
       academy.cohorts.each.with_index { |cohort, i|
         puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
       }
-      print "Cohort".yellow, ": "
+      print "Enter a month".yellow, ": "
       cohort_choice = gets.chomp
       if cohort_choice != ""  #  to menu
         until existing_cohorts.include?(cohort_choice.capitalize)
@@ -896,16 +895,28 @@ def interface(academy)
           academy.cohorts.each.with_index { |cohort, i|
             puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
           }
-          print "Cohort".yellow, ": "
+          print "Enter a month".yellow, ": "
           cohort_choice = gets.chomp
           break if cohort_choice == ""  #  to menu
         end
-        #  begin adding a student to the user choice of cohort
+
         if cohort_choice != ""
           cohort_choice = cohort_choice.capitalize
-          academy.cohorts.select { |cohort|
-            cohort.month == cohort_choice 
-          }[0].input_student
+          #  begin adding a student to the user choice of cohort, but first
+          #  check if cohort is full
+          selected_cohort = academy.cohorts.select { |cohort| 
+            cohort if cohort.month == cohort_choice
+          }[0]
+          cohort_is_full = selected_cohort.students.length >= 30
+          if cohort_is_full
+            puts long_bar
+            puts " "
+            puts "Operation aborted".italic.red
+            puts "The #{ selected_cohort.month } cohort is currently full – maximum intake is 30.".blue
+            puts " "
+          else
+            selected_cohort.input_student
+          end
         end
       end
 
@@ -1047,12 +1058,12 @@ def interface(academy)
             academy.cohorts.each.with_index { |cohort, i|
               puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
             }
-            print "Cohort".yellow, ": "
+            print "Enter a month".yellow, ": "
             target_cohort = gets.chomp
             if target_cohort != ""  #  to menu (inner loop)
               target_cohort = target_cohort.capitalize
               #  until target is a valid and seperate cohort
-              until existing_cohorts.include?(target_cohort) && selected_student.cohort != target_cohort
+              until existing_cohorts.include?(target_cohort.capitalize) && selected_student.cohort != target_cohort.capitalize
                 if selected_student.cohort == target_cohort
                   puts "----"
                   puts ("#{ selected_student.name } is already in the #{ target_cohort } cohort.").blue
@@ -1061,7 +1072,7 @@ def interface(academy)
                   academy.cohorts.each.with_index { |cohort, i|
                     puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
                   }
-                  print "Cohort".yellow, ": "
+                  print "Enter a month".yellow, ": "
                   target_cohort = gets.chomp
                   break if target_cohort != ""  #  to menu (inner loop)
                 else
@@ -1072,38 +1083,51 @@ def interface(academy)
                   academy.cohorts.each.with_index { |cohort, i|
                     puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold if cohort.month != selected_student.cohort
                   }
-                  print "Cohort".yellow, ": "
+                  print "Enter a month".yellow, ": "
                   target_cohort = gets.chomp
                   break if target_cohort == ""  #  to menu (inner loop)
                 end
               end
               if target_cohort != ""  #  to menu
                 target_cohort = target_cohort.capitalize
-                puts long_bar
-                puts " "
-                puts "You are about to move Student ID: ".blue + "#{ selected_student.student_id } ".blue + "#{ selected_student.name }".italic.blue + " to the ".blue + "#{ target_cohort }".bold.blue + " cohort.".blue
-                puts "Are you sure?".bold.italic.blue + " (".bold.blue + " Y " + "/".bold.blue + " N " + ")".bold.blue
-                print "Answer".yellow, ": "
-                sure = gets.chomp.upcase
-                until ["Y", "N"].include?(sure)
-                  puts "----"
-                  puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
-                  print "Answer".yellow, ": "
-                  sure = gets.chomp.upcase
-                end
-                if sure == "Y"
-                  target_cohort = academy.cohorts.select { |cohort| 
-                    cohort if cohort.month == target_cohort
-                  }[0]
-                  base_cohort.move_student(selected_student, target_cohort)
+                #  check if cohort is full
+                selected_cohort = academy.cohorts.select { |cohort| 
+                  cohort if cohort.month == target_cohort
+                }[0]
+                cohort_is_full = selected_cohort.students.length >= 30
+                if cohort_is_full
                   puts long_bar
                   puts " "
-                  puts "Done.".italic.blue
-                  puts ("#{ selected_student.name } has been moved to the #{ target_cohort.month } cohort.").italic.blue
-                  academy.all_cohorts
+                  puts "Operation aborted".italic.red
+                  puts "The #{ selected_cohort.month } cohort is currently full – maximum intake is 30.".blue
+                  puts " "
                 else
-                  puts "----"
-                  puts "aborted".italic.red
+                  puts long_bar
+                  puts " "
+                  puts "You are about to move Student ID: ".blue + "#{ selected_student.student_id } ".blue + "#{ selected_student.name }".italic.blue + " to the ".blue + "#{ target_cohort }".bold.blue + " cohort.".blue
+                  puts "Are you sure?".bold.italic.blue + " (".bold.blue + " Y " + "/".bold.blue + " N " + ")".bold.blue
+                  print "Answer".yellow, ": "
+                  sure = gets.chomp.upcase
+                  until ["Y", "N"].include?(sure)
+                    puts "----"
+                    puts "Please enter ".blue + "Y" + " or ".blue + "N" + " to confirm".blue
+                    print "Answer".yellow, ": "
+                    sure = gets.chomp.upcase
+                  end
+                  if sure == "Y"
+                    target_cohort = academy.cohorts.select { |cohort| 
+                      cohort if cohort.month == target_cohort
+                    }[0]
+                    base_cohort.move_student(selected_student, target_cohort)
+                    puts long_bar
+                    puts " "
+                    puts "Done.".italic.blue
+                    puts ("#{ selected_student.name } has been moved to the #{ target_cohort.month } cohort.").italic.blue
+                    academy.all_cohorts
+                  else
+                    puts "----"
+                    puts "aborted".italic.red
+                  end
                 end
               end
             end
@@ -1121,7 +1145,7 @@ def interface(academy)
       academy.cohorts.each.with_index { |cohort, i|
         puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
       }
-      print "Cohort".yellow, ": "
+      print "Enter a month".yellow, ": "
       cohort_to_search = gets.chomp
       if cohort_to_search != ""  #  to menu
         until existing_cohorts.include?(cohort_to_search.capitalize)
@@ -1132,7 +1156,7 @@ def interface(academy)
           academy.cohorts.each.with_index { |cohort, i|
             puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
           }
-          print "Cohort".yellow, ": "
+          print "Enter a month".yellow, ": "
           cohort_to_search = gets.chomp
           break if cohort_to_search == ""  #  to menu
         end
@@ -1388,7 +1412,7 @@ def interface(academy)
             puts "A ".blue + "#{ new_month.capitalize }".bold.blue + " Cohort already exists".blue
             puts "Enter a different month to create a new Cohort".blue
             puts "(press return to go back to menu)".italic
-            print "New cohort".yellow, ": "
+            print "Enter a month".yellow, ": "
             new_month = gets.chomp
             break if new_month == ""  #  to menu
           else
@@ -1396,7 +1420,7 @@ def interface(academy)
             puts "Invalid month.".italic.red
             puts "Enter a valid month to create a new Cohort".blue
             puts "(press return to go back to menu)".italic
-            print "New cohort".yellow, ": "
+            print "Enter a month".yellow, ": "
             new_month = gets.chomp
             break if new_month == ""  #  to menu
           end
@@ -1449,7 +1473,7 @@ def interface(academy)
           academy.cohorts.each.with_index { |cohort, i|
             puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
           }
-          print "Cohort".yellow, ": "
+          print "Enter a month".yellow, ": "
           target_cohort = gets.chomp
           if target_cohort != ""  #  to menu
             target_cohort = target_cohort.capitalize
@@ -1461,7 +1485,7 @@ def interface(academy)
               academy.cohorts.each.with_index { |cohort, i|
                 puts ("#{ i + 1 })".bold.yellow) + " " * (3 - i.to_s.length) + ("#{ cohort.month }").bold 
               }
-              print "Cohort".yellow, ": "
+              print "Enter a month".yellow, ": "
               target_cohort = gets.chomp
               break if target_cohort == ""  #  to menu
             end
@@ -1529,9 +1553,7 @@ def interface(academy)
   goodbye
 end
 
-#############################################################################################################
-
-# general testing
+# object instances
 
 #  converted test entries to Student objects
 sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
@@ -1546,6 +1568,54 @@ freddy_krueger = Student.new("Freddy Krueger", {registered: true})
 joker = Student.new("The Joker", {registered: true})
 joffrey = Student.new("Joffrey Baratheon", {registered: true})
 norman_bates = Student.new("Norman Bates", {registered: true})
+sam2 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+vader2 = Student.new("Darth Vader", {registered: true})
+hannibal2 = Student.new("Dr. Hannibal Lecter", {registered: true})
+nurse_ratched2 = Student.new("Nurse Ratched", {registered: true})
+michael_corleone2 = Student.new("Michael Corleone", {registered: true})
+alex_delarge2 = Student.new("Alex DeLarge", {registered: true})
+wicked_witch2 = Student.new("The Wicked Witch of the West", {registered: true})
+terminator2 = Student.new("Terminator", {registered: true})
+freddy_krueger2 = Student.new("Freddy Krueger", {registered: true})
+joker2 = Student.new("The Joker", {registered: true})
+joffrey2 = Student.new("Joffrey Baratheon", {registered: true})
+norman_bates2 = Student.new("Norman Bates", {registered: true})
+sam3 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+vader3 = Student.new("Darth Vader", {registered: true})
+hannibal3 = Student.new("Dr. Hannibal Lecter", {registered: true})
+nurse_ratched3 = Student.new("Nurse Ratched", {registered: true})
+michael_corleone3 = Student.new("Michael Corleone", {registered: true})
+alex_delarge3 = Student.new("Alex DeLarge", {registered: true})
+wicked_witch3 = Student.new("The Wicked Witch of the West", {registered: true})
+terminator3 = Student.new("Terminator", {registered: true})
+freddy_krueger3 = Student.new("Freddy Krueger", {registered: true})
+joker3 = Student.new("The Joker", {registered: true})
+joffrey3 = Student.new("Joffrey Baratheon", {registered: true})
+norman_bates3 = Student.new("Norman Bates", {registered: true})
+sam4 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+vader4 = Student.new("Darth Vader", {registered: true})
+hannibal4 = Student.new("Dr. Hannibal Lecter", {registered: true})
+nurse_ratched4 = Student.new("Nurse Ratched", {registered: true})
+michael_corleone4 = Student.new("Michael Corleone", {registered: true})
+alex_delarge4 = Student.new("Alex DeLarge", {registered: true})
+wicked_witch4 = Student.new("The Wicked Witch of the West", {registered: true})
+terminator4 = Student.new("Terminator", {registered: true})
+freddy_krueger4 = Student.new("Freddy Krueger", {registered: true})
+joker4 = Student.new("The Joker", {registered: true})
+joffrey4 = Student.new("Joffrey Baratheon", {registered: true})
+norman_bates4 = Student.new("Norman Bates", {registered: true})
+sam5 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+vader5 = Student.new("Darth Vader", {registered: true})
+hannibal5 = Student.new("Dr. Hannibal Lecter", {registered: true})
+nurse_ratched5 = Student.new("Nurse Ratched", {registered: true})
+michael_corleone5 = Student.new("Michael Corleone", {registered: true})
+alex_delarge5 = Student.new("Alex DeLarge", {registered: true})
+wicked_witch5 = Student.new("The Wicked Witch of the West", {registered: true})
+terminator5 = Student.new("Terminator", {registered: true})
+freddy_krueger5 = Student.new("Freddy Krueger", {registered: true})
+joker5 = Student.new("The Joker", {registered: true})
+joffrey5 = Student.new("Joffrey Baratheon", {registered: true})
+norman_bates5 = Student.new("Norman Bates", {registered: true})
 
 #  create "Villains Academy" Academy object
 villains_academy = Academy.new("Villains Academy")
@@ -1554,8 +1624,8 @@ villains_academy = Academy.new("Villains Academy")
 va_november = Cohort.new("November")
 
 #  add some Student objects to "Villains Academy" November
-va_november.add_student(sam, vader, hannibal, nurse_ratched, 
-                        michael_corleone, alex_delarge)
+va_november.add_student(sam, sam2, sam3, sam4, sam5, vader, vader2, vader3, vader4, vader5, hannibal, hannibal2, hannibal3, hannibal4, hannibal5, nurse_ratched, nurse_ratched2, nurse_ratched3, nurse_ratched4, nurse_ratched5,
+                        michael_corleone, michael_corleone2, michael_corleone3, michael_corleone4, michael_corleone5, alex_delarge, alex_delarge2, alex_delarge3, alex_delarge4, alex_delarge5)
 
 #  create "Villains Academy" December Cohort     
 va_december = Cohort.new("December")
@@ -1569,6 +1639,8 @@ villains_academy.add_cohort(va_november, va_december)
 
 #  start session
 interface(villains_academy)
+
+general testing
 
 #  testing methods in CLI
 ##va_november.roster
