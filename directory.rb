@@ -1,6 +1,31 @@
 #  current modules
 
 module Saving
+
+  require 'csv'
+  
+  def save_students(academy, filename = "students.csv")
+    #  saves to file that was opened
+    filename = ARGV.first != nil ? ARGV.first : filename
+    #  open the file for writing
+    file = CSV.open(filename, "wb") { |csv|
+      #  save the academy name
+      csv << [academy.name]
+      #  save each cohort
+      academy.cohorts.each { |cohort| 
+        cohort_data = [cohort.academy, cohort.month]
+        csv << cohort_data
+        #  save all students for each cohort
+        cohort.students.each { |student| 
+          student_data = [student.name, student.age, student.gender, student.height, 
+                          student.country_of_birth, student.is_disabled, cohort.month, 
+                          student.registered, student.student_id]
+          csv << student_data
+        }
+      }
+    }
+  end
+=begin
   def save_students(academy, filename = "students.csv")
     #  saves to file that was opened
     filename = ARGV.first != nil ? ARGV.first : filename
@@ -24,6 +49,7 @@ module Saving
     }
     file.close
   end
+=end
 
   #  only load program if an argument is supplied pointing to an existing filename 
   #  (or if no argument is supplied)
@@ -32,15 +58,16 @@ module Saving
       if File.exists?(filename)
         puts "loading #{ academy.name } session from #{ filename }..".italic.yellow
         #  open file with academy data
-        file = File.open(filename, "r")
-        file.readlines.each.with_index { |line, i| 
+        i = 0
+        CSV.foreach(filename, "r") { |row| 
           if i == 0  #  if top line:
             #  get the academy name
-            academy.name = line.chomp
-          elsif line.chomp.split(", ").length == 2
+            academy.name = row.first
+          elsif row.length == 2
             #  split cohort data if cohort line:
-            cohort_academy, cohort_month = line.chomp.split(", ")
+            cohort_academy, cohort_month = row
             #  recreate and push cohort to academy
+            print row
             new_cohort = Cohort.new(cohort_month)
             #  assign current academy to new cohort
             new_cohort.academy = cohort_academy
@@ -50,7 +77,7 @@ module Saving
             #  split student data into variables if student line:
             student_name, student_age, student_gender, student_height, 
             student_country_of_birth, student_disability_status, cohort_month,
-            student_registration, student_id_number = line.chomp.split (", ")
+            student_registration, student_id_number = row
             #  recreate and push students to last created cohort
             academy.cohorts[-1].add_student(
               Student.new(student_name, { 
@@ -61,8 +88,8 @@ module Saving
               })
             )
           end
-        }
-        file.close
+          i += 1
+        }      
       else
         puts "Failed to load session from #{ filename }".italic.red
         exit
@@ -1694,4 +1721,5 @@ villains_academy.add_cohort(va_november, va_december)
 =end
 
 #  start session
+
 interface(villains_academy)
