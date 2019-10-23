@@ -1,5 +1,90 @@
 #  current modules
 
+module Saving
+  def save_students(academy, filename = "students.csv")
+    #  saves to file that was opened
+    filename = ARGV.first != nil ? ARGV.first : filename
+    #  open the file for writing
+    file = File.open(filename, "w")
+    #  save the academy name
+    file.puts academy.name
+    #  save each cohort
+    academy.cohorts.each { |cohort| 
+      cohort_data = [cohort.academy, cohort.month]
+      csv_line = cohort_data.join(", ")
+      file.puts csv_line
+      #  save all students for each cohort
+      cohort.students.each { |student| 
+        student_data = [student.name, student.age, student.gender, student.height, 
+                        student.country_of_birth, student.is_disabled, cohort.month, 
+                        student.registered, student.student_id]
+        csv_line = student_data.join(", ")
+        file.puts csv_line
+      }
+    }
+    file.close
+  end
+
+  #  only load program if an argument is supplied pointing to an existing filename 
+  #  (or if no argument is supplied)
+  def load_students(academy, filename = "students.csv")
+      filename = ARGV.first != nil ? ARGV.first : filename
+      if File.exists?(filename)
+        puts "loading #{ academy.name } session from #{ filename }..".italic.yellow
+        #  open file with academy data
+        file = File.open(filename, "r")
+        file.readlines.each.with_index { |line, i| 
+          if i == 0  #  if top line:
+            #  get the academy name
+            academy.name = line.chomp
+          elsif line.chomp.split(", ").length == 2
+            #  split cohort data if cohort line:
+            cohort_academy, cohort_month = line.chomp.split(", ")
+            #  recreate and push cohort to academy
+            new_cohort = Cohort.new(cohort_month)
+            #  assign current academy to new cohort
+            new_cohort.academy = cohort_academy
+            #  push cohort to academy.cohorts
+            academy.add_cohort(Cohort.new(cohort_month))
+          else
+            #  split student data into variables if student line:
+            student_name, student_age, student_gender, student_height, 
+            student_country_of_birth, student_disability_status, cohort_month,
+            student_registration, student_id_number = line.chomp.split (", ")
+            #  recreate and push students to last created cohort
+            academy.cohorts[-1].add_student(
+              Student.new(student_name, { 
+                age: student_age, gender: student_gender,
+                height: student_height, country_of_birth: student_country_of_birth,
+                is_disabled: student_disability_status, cohort: cohort_month, 
+                registered: student_registration, student_id: student_id_number 
+              })
+            )
+          end
+        }
+        file.close
+      else
+        puts "Failed to load session from #{ filename }".italic.red
+        exit
+      end
+  end
+
+=begin
+  def try_load_students(academy, filename = "students.csv")  #  as load_students takes an argument
+    filename = File.exists?(ARGV.first) ? ARGV.first : filename  #  first argument from the command line
+    return if filename.nil?  #  don't load if there is no filename
+    if File.exists?(filename)
+      puts "loading #{ academy.name } session from #{ filename }..".italic.yellow
+      load_students(academy, filename)
+    else
+      puts "Failed to load session from #{ filename }".italic.red
+      exit
+    end
+  end
+=end
+
+end
+
 module Formatting
   def capitalize_each
     self.split.map{ |word|
@@ -79,7 +164,6 @@ module Formatting
     puts "-------------".center(94)
     puts "Goodbye".center(94)
     puts "-------------".center(94)
-    puts " "
   end
 
 end
@@ -237,81 +321,6 @@ module Validation
       disability_status = STDIN.gets.chomp.downcase
     end
     disability_status
-  end
-end
-
-module Saving
-  def save_students(academy, filename = "students.csv")
-    #  open the file for writing
-    file = File.open(filename, "w")
-    #  save the academy name
-    file.puts academy.name
-    #  save each cohort
-    academy.cohorts.each { |cohort| 
-      cohort_data = [cohort.academy, cohort.month]
-      csv_line = cohort_data.join(", ")
-      file.puts csv_line
-      #  save all students for each cohort
-      cohort.students.each { |student| 
-        student_data = [student.name, student.age, student.gender, student.height, 
-                        student.country_of_birth, student.is_disabled, cohort.month, 
-                        student.registered, student.student_id]
-        csv_line = student_data.join(", ")
-        file.puts csv_line
-      }
-    }
-    file.close
-  end
-
-  def load_students(academy, filename = "students.csv")
-    filename = ARGV.first  #  first argument from the command line
-    return if filename.nil?  #  don't load if the is no filename
-    if File.exists?(filename)
-      puts "loading #{ academy.name } session from #{ filename }..".italic.yellow
-      #  open file with academy data
-      file = File.open(filename, "r")
-      file.readlines.each.with_index { |line, i| 
-        if i == 0  #  if top line:
-          #  get the academy name
-          academy.name = line.chomp
-        elsif line.chomp.split(", ").length == 2  #  if cohort line:
-          #  split cohort data
-          cohort_academy, cohort_month = line.chomp.split(", ")
-          #  recreate and push cohort to academy
-          new_cohort = Cohort.new(cohort_month)
-          #  assign current academy to new cohort
-          new_cohort.academy = cohort_academy
-          #  push cohort to academy.cohorts
-          academy.add_cohort(Cohort.new(cohort_month))
-        else  #  if student line:
-          #  split student data into variables
-          student_name, student_age, student_gender, student_height, 
-          student_country_of_birth, student_disability_status, cohort_month,
-          student_registration, student_id_number = line.chomp.split (", ")
-          #  recreate and push students to last created cohort
-          academy.cohorts[-1].add_student(Student.new(
-            student_name, {age: student_age, gender: student_gender,
-            height: student_height, country_of_birth: student_country_of_birth,
-            is_disabled: student_disability_status, cohort: cohort_month, 
-            registered: student_registration, student_id: student_id_number }))
-        end
-      }
-    else
-      puts "Failed to load session from #{ filename }".italic.red
-      exit
-    end
-  end
-
-  def try_load_students(academy)  #  as load_students takes an argument
-    filename = ARGV.first  #  first argument from the command line
-    return if filename.nil?  #  don't load if the is no filename
-    if File.exists?(filename)
-      load_students(academy, filename)
-      puts "loaded #{ academy.name } session from #{ filename }"
-    else
-      puts "Failed to load session from #{ filename }"
-      exit
-    end
   end
 end
 
@@ -674,6 +683,7 @@ class Cohort
       
       #  add the Student object to the list of students 
       #  if student is successfully registered
+      registered = true
       @students << new_student
       puts " "
       puts " "
@@ -830,6 +840,18 @@ class Student
   end
 end
 
+#  menu formatting
+def full_menu(academy)
+  print ("1)  ".bold.yellow + "Display all students in #{ academy.name }".bold).ljust(78), "8)  ".bold.yellow + "Move student to another cohort".bold, "\n"
+  print ("2)  ".bold.yellow + "View all Cohorts in #{ academy.name }".bold).ljust(78),     "9)  ".bold.yellow + "Filter students at cohort level".bold, "\n"
+  print ("3)  ".bold.yellow + "View an indidual cohort".bold).ljust(78),                   "10) ".bold.yellow + "Filter all students".bold, "\n"
+  print ("4)  ".bold.yellow + "Display student profiles at cohort level".bold).ljust(78),  "11) ".bold.yellow + "Edit a student".bold, "\n"
+  print ("5)  ".bold.yellow + "Display all student profiles".bold).ljust(78),              "12) ".bold.yellow + "Add a cohort to #{ academy.name }".bold, "\n"
+  print ("6)  ".bold.yellow + "Add a student to a specific cohort".bold).ljust(78),        "13) ".bold.yellow + "Remove a cohort from #{ academy.name }".bold, "\n"
+  print ("7)  ".bold.yellow + "Delete a student from a specific cohort".bold).ljust(78),   "---- (type 'end' to save and exit) ----".bold.blue, "\n"
+end
+
+#  for user interaction
 def interface(academy)
   include Formatting
   include Validation
@@ -841,13 +863,7 @@ def interface(academy)
   puts "Welcome to #{ academy.name }".bold.blue
   puts "Please choose an option".italic.blue
   puts long_bar
-  print ("1)  ".bold.yellow + "Display all students in #{ academy.name }".bold).ljust(78), "8)  ".bold.yellow + "Move student to another cohort".bold, "\n"
-  print ("2)  ".bold.yellow + "View all Cohorts in #{ academy.name }".bold).ljust(78),     "9)  ".bold.yellow + "Filter students at cohort level".bold, "\n"
-  print ("3)  ".bold.yellow + "View an indidual cohort".bold).ljust(78),                   "10) ".bold.yellow + "Filter all students".bold, "\n"
-  print ("4)  ".bold.yellow + "Display student profiles at cohort level".bold).ljust(78),  "11) ".bold.yellow + "Edit a student".bold, "\n"
-  print ("5)  ".bold.yellow + "Display all student profiles".bold).ljust(78),              "12) ".bold.yellow + "Add a cohort to #{ academy.name }".bold, "\n"
-  print ("6)  ".bold.yellow + "Add a student to a specific cohort".bold).ljust(78),        "13) ".bold.yellow + "Remove a cohort from #{ academy.name }".bold, "\n"
-  print ("7)  ".bold.yellow + "Delete a student from a specific cohort".bold).ljust(78),   "---- (type 'end' to save and exit) ----".bold.blue, "\n"
+  full_menu(academy)
   print "Option".yellow, ": "
   #  get user choice
   choice = STDIN.gets.chomp
@@ -862,7 +878,6 @@ def interface(academy)
     end
 
     ##  for reference:
-      
       #  document the months which already have cohorts
       existing_cohorts = []
       academy.cohorts.each { |cohort| existing_cohorts.push(cohort.month) }
@@ -969,40 +984,46 @@ def interface(academy)
     when 6
       puts long_bar
       puts " "
-      puts "Adding a new student..".italic.blue
-      puts "Which cohort would you like to add this student to?".bold.blue
-      puts "(press return to go back to menu)".italic
-      list_cohort_months(academy)
-      print "Enter a month".yellow, ": "
-      cohort_choice = STDIN.gets.chomp
-      if cohort_choice != ""  #  else to menu
-        until existing_cohorts.include?(cohort_choice.capitalize)
-          puts "----"
-          puts "Invalid entry.".italic.red
-          puts "Please enter an existing cohort month".blue
-          puts "(press return to go back to menu)".italic
-          list_cohort_months(academy)
-          print "Enter a month".yellow, ": "
-          cohort_choice = STDIN.gets.chomp
-          break if cohort_choice == ""  #  else to menu
-        end
+      if academy.cohorts.length == 0  #  if there are no cohorts yet (for blank sessions)
+        puts "There are no cohorts to add a student to just yet".italic.blue
+        puts "You can add a cohort at the menu".italic.blue
+        puts " "
+      else
+        puts "Adding a new student..".italic.blue
+        puts "Which cohort would you like to add this student to?".bold.blue
+        puts "(press return to go back to menu)".italic
+        list_cohort_months(academy)
+        print "Enter a month".yellow, ": "
+        cohort_choice = STDIN.gets.chomp
+        if cohort_choice != ""  #  else to menu
+          until existing_cohorts.include?(cohort_choice.capitalize)
+            puts "----"
+            puts "Invalid entry.".italic.red
+            puts "Please enter an existing cohort month".blue
+            puts "(press return to go back to menu)".italic
+            list_cohort_months(academy)
+            print "Enter a month".yellow, ": "
+            cohort_choice = STDIN.gets.chomp
+            break if cohort_choice == ""  #  else to menu
+          end
 
-        if cohort_choice != ""
-          cohort_choice = cohort_choice.capitalize
-          #  begin adding a student to the user choice of cohort, but first
-          #  check if cohort is full
-          selected_cohort = academy.cohorts.select { |cohort| 
-            cohort if cohort.month == cohort_choice
-          }.first
-          cohort_is_full = selected_cohort.students.length >= 30
-          if cohort_is_full
-            puts long_bar
-            puts " "
-            puts "Operation aborted".italic.red
-            puts "The #{ selected_cohort.month } cohort is currently full – maximum intake is 30.".blue
-            puts " "
-          else
-            selected_cohort.input_student
+          if cohort_choice != ""
+            cohort_choice = cohort_choice.capitalize
+            #  begin adding a student to the user choice of cohort, but first
+            #  check if cohort is full
+            selected_cohort = academy.cohorts.select { |cohort| 
+              cohort if cohort.month == cohort_choice
+            }.first
+            cohort_is_full = selected_cohort.students.length >= 30
+            if cohort_is_full
+              puts long_bar
+              puts " "
+              puts "Operation aborted".italic.red
+              puts "The #{ selected_cohort.month } cohort is currently full – maximum intake is 30.".blue
+              puts " "
+            else
+              selected_cohort.input_student
+            end
           end
         end
       end
@@ -1134,8 +1155,6 @@ def interface(academy)
             selected_student = all_profiles.select { |profile|
               profile if profile.student_id == student_to_move
             }.first
-            print selected_student.name, selected_student.height
-            print "print", selected_student.cohort, academy.cohorts[-1].month
             #  selects cohort of student
             base_cohort = academy.cohorts.select { |cohort| 
               cohort if cohort.month == selected_student.cohort
@@ -1630,22 +1649,49 @@ def interface(academy)
     puts "#{ academy.name }".bold.blue
     puts "Please choose another option".italic.blue
     puts long_bar
-    print ("1)  ".bold.yellow + "Display all students in #{ academy.name }".bold).ljust(78), "8)  ".bold.yellow + "Move student to another cohort".bold, "\n"
-    print ("2)  ".bold.yellow + "View all Cohorts in #{ academy.name }".bold).ljust(78),     "9)  ".bold.yellow + "Filter students at cohort level".bold, "\n"
-    print ("3)  ".bold.yellow + "View an indidual cohort".bold).ljust(78),                   "10) ".bold.yellow + "Filter all students".bold, "\n"
-    print ("4)  ".bold.yellow + "Display student profiles at cohort level".bold).ljust(78),  "11) ".bold.yellow + "Edit a student".bold, "\n"
-    print ("5)  ".bold.yellow + "Display all student profiles".bold).ljust(78),              "12) ".bold.yellow + "Add a cohort to #{ academy.name }".bold, "\n"
-    print ("6)  ".bold.yellow + "Add a student to a specific cohort".bold).ljust(78),        "13) ".bold.yellow + "Remove a cohort from #{ academy.name }".bold, "\n"
-    print ("7)  ".bold.yellow + "Delete a student from a specific cohort".bold).ljust(78),   "---- (type 'end' to save and exit) ----".bold.blue, "\n"
+    full_menu(academy)
     print "Option".yellow, ": "
     choice = STDIN.gets.chomp
   end
   puts long_bar
-  goodbye
   save_students(academy)  #  saves before exiting
+  goodbye
 end
 
+=begin
+
+sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
+vader = Student.new("Darth Vader", {registered: true})
+hannibal = Student.new("Dr. Hannibal Lecter", {registered: true})
+nurse_ratched = Student.new("Nurse Ratched", {registered: true})
+michael_corleone = Student.new("Michael Corleone", {registered: true})
+alex_delarge = Student.new("Alex DeLarge", {registered: true})
+wicked_witch = Student.new("The Wicked Witch of the West", {registered: true})
+terminator = Student.new("Terminator", {registered: true})
+freddy_krueger = Student.new("Freddy Krueger", {registered: true})
+joker = Student.new("The Joker", {registered: true})
+joffrey = Student.new("Joffrey Baratheon", {registered: true})
+norman_bates = Student.new("Norman Bates", {registered: true})
+
+=end
+
+#  create academy instance
 villains_academy = Academy.new("Villains Academy")
+
+=begin
+
+#  create two cohorts
+va_november = Cohort.new("November")
+va_december = Cohort.new("December")
+
+#  add students to cohorts
+va_november.add_student(sam, vader, hannibal, nurse_ratched, michael_corleone, alex_delarge)
+va_december.add_student(wicked_witch, terminator, freddy_krueger, joker, joffrey, norman_bates)
+
+#  add cohorts to academy
+villains_academy.add_cohort(va_november, va_december)
+
+=end
 
 #  start session
 interface(villains_academy)
