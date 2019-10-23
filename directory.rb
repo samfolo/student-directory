@@ -254,13 +254,44 @@ module Saving
       #  save all students for each cohort
       cohort.students.each { |student| 
         student_data = [student.name, student.age, student.gender, student.height, 
-                        student.country_of_birth, student.is_disabled, student.cohort, 
+                        student.country_of_birth, student.is_disabled, cohort.month, 
                         student.registered, student.student_id]
         csv_line = student_data.join(", ")
         file.puts csv_line
       }
     }
     file.close
+  end
+
+  def restore_students(academy)
+    #  open file with academy data
+    file = File.open("students.csv", "r")
+    file.readlines.each.with_index { |line, i| 
+      if i == 0  #  if top line:
+        #  get the academy name
+        academy.name = line.chomp
+      elsif line.chomp.split(", ").length == 2  #  if cohort line:
+        #  split cohort data
+        cohort_academy, cohort_month = line.chomp.split(", ")
+        #  recreate and push cohort to academy
+        new_cohort = Cohort.new(cohort_month)
+        #  assign current academy to new cohort
+        new_cohort.academy = cohort_academy
+        #  push cohort to academy.cohorts
+        academy.add_cohort(Cohort.new(cohort_month))
+      else  #  if student line:
+        #  split student data into variables
+        student_name, student_age, student_gender, student_height, 
+        student_country_of_birth, student_disability_status, cohort_month,
+        student_registration, student_id_number = line.chomp.split (", ")
+        #  recreate and push students to last created cohort
+        academy.cohorts[-1].add_student(Student.new(
+          student_name, {age: student_age, gender: student_gender,
+          height: student_height, country_of_birth: student_country_of_birth,
+          is_disabled: student_disability_status, cohort: cohort_month, 
+          registered: student_registration, student_id: student_id_number }))
+      end
+    }
   end
 end
 
@@ -273,7 +304,7 @@ end
 #  each academy instance
 class Academy
   include Formatting
-  attr_reader :name, :cohorts
+  attr_accessor :name, :cohorts
 
   def initialize(name)
     @name = name
@@ -659,25 +690,27 @@ class Student
     @is_disabled = options.fetch(:is_disabled)
     @cohort  #  assigned upon addition to cohort
     @registered = options.fetch(:registered)
-    #  use luhns algorithm to assign a 'valid' zero-padded ID
+    @student_id = options.fetch(:student_id)
+  end
+
+  #  default assignments for Student
+  def defaults
     random_num = rand(10000000)
     random_id = random_num.to_s.rjust(7, "0")
     until luhns_seven(random_id) == true
       random_num = rand(10000000)
       random_id = random_num.to_s.rjust(7, "0")
     end
-    @student_id = random_id
-  end
-
-  #  default assignments for Student
-  def defaults
     {
       age: "N/A",
       gender: "N/A",
       height: "N/A",
       country_of_birth: "N/A",
       is_disabled: "N/A",
-      registered: false
+      registered: false,
+      #  use luhns algorithm to assign a 'valid' zero-padded ID
+      student_id: random_id,
+      cohort: "N/A"
     }
   end
 
@@ -782,6 +815,7 @@ def interface(academy)
   include Validation
   include Saving
 
+  restore_students(academy)  #  restore data upon opening
   puts long_bar
   puts "Welcome to #{ academy.name }".bold.blue
   puts "Please choose an option".italic.blue
@@ -1079,11 +1113,12 @@ def interface(academy)
             selected_student = all_profiles.select { |profile|
               profile if profile.student_id == student_to_move
             }[0]
+            print selected_student.name, selected_student.height
+            print "print", selected_student.cohort, academy.cohorts[-1].month
             #  selects cohort of student
             base_cohort = academy.cohorts.select { |cohort| 
               cohort if cohort.month == selected_student.cohort
             }[0]
-
             puts long_bar
             puts " "
             puts ("Which cohort would you like to move #{ selected_student.name } to? ( ").bold.blue + "enter a month" + " )".bold.blue
@@ -1108,7 +1143,7 @@ def interface(academy)
                   }
                   print "Enter a month".yellow, ": "
                   target_cohort = gets.chomp
-                  break if target_cohort != ""  #  else to menu (inner loop)
+                  break if target_cohort != ""  #  else to menu (inner loop break)
                 else
                   puts "----"
                   puts "Invalid entry.".italic.red
@@ -1119,7 +1154,7 @@ def interface(academy)
                   }
                   print "Enter a month".yellow, ": "
                   target_cohort = gets.chomp
-                  break if target_cohort == ""  #  else to menu (inner loop)
+                  break if target_cohort == ""  #  else to menu (inner loop break)
                 end
               end
               if target_cohort != ""  #  else to menu
@@ -1586,127 +1621,10 @@ def interface(academy)
   end
   puts long_bar
   goodbye
-  save_students(academy)
+  save_students(academy)  #  saves before exiting
 end
 
-# object instances
-
-#  converted test entries to Student objects
-sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
-vader = Student.new("Darth Vader", {registered: true})
-hannibal = Student.new("Dr. Hannibal Lecter", {registered: true})
-nurse_ratched = Student.new("Nurse Ratched", {registered: true})
-michael_corleone = Student.new("Michael Corleone", {registered: true})
-alex_delarge = Student.new("Alex DeLarge", {registered: true})
-wicked_witch = Student.new("The Wicked Witch of the West", {registered: true})
-terminator = Student.new("Terminator", {registered: true})
-freddy_krueger = Student.new("Freddy Krueger", {registered: true})
-joker = Student.new("The Joker", {registered: true})
-joffrey = Student.new("Joffrey Baratheon", {registered: true})
-norman_bates = Student.new("Norman Bates", {registered: true})
-sam2 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
-vader2 = Student.new("Darth Vader", {registered: true})
-hannibal2 = Student.new("Dr. Hannibal Lecter", {registered: true})
-nurse_ratched2 = Student.new("Nurse Ratched", {registered: true})
-michael_corleone2 = Student.new("Michael Corleone", {registered: true})
-alex_delarge2 = Student.new("Alex DeLarge", {registered: true})
-wicked_witch2 = Student.new("The Wicked Witch of the West", {registered: true})
-terminator2 = Student.new("Terminator", {registered: true})
-freddy_krueger2 = Student.new("Freddy Krueger", {registered: true})
-joker2 = Student.new("The Joker", {registered: true})
-joffrey2 = Student.new("Joffrey Baratheon", {registered: true})
-norman_bates2 = Student.new("Norman Bates", {registered: true})
-sam3 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
-vader3 = Student.new("Darth Vader", {registered: true})
-hannibal3 = Student.new("Dr. Hannibal Lecter", {registered: true})
-nurse_ratched3 = Student.new("Nurse Ratched", {registered: true})
-michael_corleone3 = Student.new("Michael Corleone", {registered: true})
-alex_delarge3 = Student.new("Alex DeLarge", {registered: true})
-wicked_witch3 = Student.new("The Wicked Witch of the West", {registered: true})
-terminator3 = Student.new("Terminator", {registered: true})
-freddy_krueger3 = Student.new("Freddy Krueger", {registered: true})
-joker3 = Student.new("The Joker", {registered: true})
-joffrey3 = Student.new("Joffrey Baratheon", {registered: true})
-norman_bates3 = Student.new("Norman Bates", {registered: true})
-sam4 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
-vader4 = Student.new("Darth Vader", {registered: true})
-hannibal4 = Student.new("Dr. Hannibal Lecter", {registered: true})
-nurse_ratched4 = Student.new("Nurse Ratched", {registered: true})
-michael_corleone4 = Student.new("Michael Corleone", {registered: true})
-alex_delarge4 = Student.new("Alex DeLarge", {registered: true})
-wicked_witch4 = Student.new("The Wicked Witch of the West", {registered: true})
-terminator4 = Student.new("Terminator", {registered: true})
-freddy_krueger4 = Student.new("Freddy Krueger", {registered: true})
-joker4 = Student.new("The Joker", {registered: true})
-joffrey4 = Student.new("Joffrey Baratheon", {registered: true})
-norman_bates4 = Student.new("Norman Bates", {registered: true})
-sam5 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
-vader5 = Student.new("Darth Vader", {registered: true})
-hannibal5 = Student.new("Dr. Hannibal Lecter", {registered: true})
-nurse_ratched5 = Student.new("Nurse Ratched", {registered: true})
-michael_corleone5 = Student.new("Michael Corleone", {registered: true})
-alex_delarge5 = Student.new("Alex DeLarge", {registered: true})
-wicked_witch5 = Student.new("The Wicked Witch of the West", {registered: true})
-terminator5 = Student.new("Terminator", {registered: true})
-freddy_krueger5 = Student.new("Freddy Krueger", {registered: true})
-joker5 = Student.new("The Joker", {registered: true})
-joffrey5 = Student.new("Joffrey Baratheon", {registered: true})
-norman_bates5 = Student.new("Norman Bates", {registered: true})
-
-#  create "Villains Academy" Academy object
 villains_academy = Academy.new("Villains Academy")
-
-#  create "Villains Academy" November Cohort
-va_november = Cohort.new("November")
-
-#  add some Student objects to "Villains Academy" November
-va_november.add_student(sam, sam2, sam3, sam4, sam5, vader, vader2, vader3, vader4, vader5, hannibal, hannibal2, hannibal3, hannibal4, hannibal5, nurse_ratched, nurse_ratched2, nurse_ratched3, nurse_ratched4, nurse_ratched5,
-                        michael_corleone, michael_corleone2, michael_corleone3, michael_corleone4, michael_corleone5, alex_delarge, alex_delarge2, alex_delarge3, alex_delarge4, alex_delarge5)
-
-#  create "Villains Academy" December Cohort     
-va_december = Cohort.new("December")
-
-#  add some Student objects to "Villains Academy" December
-va_december.add_student(wicked_witch, terminator, freddy_krueger, 
-                        joker, joffrey, norman_bates)
-
-#  add Cohorts to Academy
-villains_academy.add_cohort(va_november, va_december)
 
 #  start session
 interface(villains_academy)
-
-#  general testing
-
-#  testing methods in CLI
-##va_november.roster
-##puts " "
-##va_november.input_student
-##puts " "
-##va_november.roster
-##puts " "
-##va_november.by_initial("W")
-##puts " "
-##va_november.by_length(10)
-##puts " "
-##va_december.roster
-##puts " "
-##va_december.input_student
-##puts " "
-##va_december.roster
-##puts " "
-##va_december.by_initial("J")
-##puts " "
-##va_december.by_length(7)
-
-#  testing delete fuction
-##va_november.delete_student(alex_delarge)
-##va_december.delete_student(joffrey, terminator)
-##villains_academy.all_cohorts
-
-#  testing student migration
-##va_november.move_student(sam, va_december)
-##villains_academy.all_cohorts
-
-#  testing edit student
-##sam.edit_student
