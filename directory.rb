@@ -2,8 +2,7 @@
 
 module Saving
 
-  require 'csv'
-  
+  require 'csv'  
   def save_students(academy, filename = "students.csv")
     #  saves to file that was opened
     filename = ARGV.first != nil ? ARGV.first : filename
@@ -217,6 +216,7 @@ module Validation
     "Uzbekistan", "Venezuela", "Vietnam", "Virgin Islands (US)", "Wales", "Yemen", "Zambia", "Zimbabwe"].map { |country| country.downcase.to_sym }
   end
 
+  #  provide suggestions if user mistypes a country
   def did_you_mean?(country)
     #  naive search..?
     possible_valid = []
@@ -402,23 +402,24 @@ class Academy
     print_footer
   end
 
+  #  sorts all cohorts by actual_months (array) as and when necessary
   def resort_cohorts_by_month
-    #  sorts all cohorts by actual_months (array) as and when necessary
+    
     @cohorts.sort_by! { 
       |cohort| actual_months.index(cohort.month.downcase.to_sym) 
     }
   end
 
   ##  for interface:
+  #  document the months which already have cohorts
   def existing_cohorts
-    #  document the months which already have cohorts
     existing = []
     @cohorts.each { |cohort| existing.push(cohort.month) }
     existing
   end
   
-  def all_ids
   #  get all IDs as strings in an array
+  def all_ids
     ids = []
     @cohorts.each { |cohort|
       cohort.students.each { |student|
@@ -917,30 +918,30 @@ def full_menu(academy)
   print ("7)  ".bold.yellow + "Delete a student from a specific cohort".bold).ljust(78),   "---- (type 'end' to save and exit) ----".bold.blue, "\n"
 end
 
+#  view all students in the academy in one list
 def view_all_students(academy)
   include Formatting
   include Validation
-  #  view all students in the academy in one list
   puts long_bar
   puts " "
   puts "Displaying all students..".italic.blue
   academy.all_students
 end
 
+#  view all students in the academy divided into their cohorts
 def view_all_cohorts(academy)
   include Formatting
   include Validation
-  #  view all students in the academy divided into their cohorts
   puts long_bar
   puts " "
   puts "Displaying all cohorts..".italic.blue
   academy.all_cohorts
 end
 
+#  view all students in a particular cohort
 def view_a_cohort(academy)
   include Formatting
   include Validation
-  #  view all students in a particular cohort
   puts long_bar
   puts " "
   puts "Which cohort would you like to view? ( ".bold.blue + "enter a month" + " )".bold.blue
@@ -967,10 +968,10 @@ def view_a_cohort(academy)
   end
 end
 
+#  display student profiles at cohort level (divided by month)
 def view_profiles_by_cohort(academy)
   include Formatting
   include Validation
-  #  display student profiles at cohort level (divided by month)
   puts long_bar
   puts " "
   puts ("Displaying all #{ academy.name } student profiles by cohort..").italic.blue
@@ -990,10 +991,10 @@ def view_profiles_by_cohort(academy)
   }
 end
 
+#  display student profiles at academy level
 def view_all_profiles(academy)
   include Formatting
   include Validation
-  #  display student profiles at academy level
   puts long_bar
   puts " "
   puts ("Displaying all student profiles for #{ academy.name }..").italic.blue
@@ -1009,10 +1010,10 @@ def view_all_profiles(academy)
   puts " "
 end
 
+#  add a new student (fill in a form)
 def add_a_student(academy)
   include Formatting
   include Validation
-  #  add a new student (fill in a form)
   puts long_bar
   puts " "
   if academy.cohorts.length == 0  #  if there are no cohorts yet (for blank sessions)
@@ -1060,10 +1061,10 @@ def add_a_student(academy)
   end
 end
 
+#  delete a student from the academy
 def delete_a_student(academy)
   include Formatting
   include Validation
-  #  delete a student from the academy
   puts long_bar
   puts " "
   puts "Deleting a student..".italic.blue
@@ -1141,10 +1142,10 @@ def delete_a_student(academy)
   end
 end
 
+#  move student from one cohort to another
 def move_a_student(academy)
   include Formatting
   include Validation
-  #  move student from one cohort to another
   puts long_bar
   puts " "
   puts "Migrating student..".italic.blue
@@ -1277,17 +1278,16 @@ def move_a_student(academy)
             end
           end
         end
-        #break if target_cohort == ""  #  else to menu (outer OUTER loop break)
       end
     end
   end
 end
 
+#  filter students by either initial or maximum name length 
+#  at cohort level (can add more options if necessary)
 def filter_at_cohort_level(academy)
   include Formatting
   include Validation
-  #  filter students by either initial or maximum name length 
-  #  at cohort level (can add more options if necessary)
   puts long_bar
   puts " "
   puts "Searching at cohort level..".italic.blue
@@ -1399,10 +1399,10 @@ def filter_at_cohort_level(academy)
   end
 end
 
+#  gather every student from every cohort into temporary cohort
 def filter_all_students(academy)
   include Formatting
   include Validation
-  #  gather every student from every cohort into temporary cohort
   all = Cohort.new("Whole Academy")
   academy.cohorts.each { |cohort|
     cohort.students.each { |student|
@@ -1492,6 +1492,7 @@ def filter_all_students(academy)
   end
 end
 
+#  edit a student
 def edit_a_student(academy)
   include Formatting
   include Validation
@@ -1543,6 +1544,7 @@ def edit_a_student(academy)
   end
 end
 
+#  create a cohort (provided that a cohort with that month doesn't exist)
 def create_a_cohort(academy)
   include Formatting
   include Validation
@@ -1594,6 +1596,8 @@ def create_a_cohort(academy)
   end
 end
 
+#  redistribute the students evenly, considering the 30-students-per-cohort cap
+#  doesn't allow user to delete if there is only one cohort
 def delete_a_cohort(academy)
   include Formatting
   include Validation
@@ -1705,10 +1709,9 @@ def interface(academy)
   puts long_bar
   full_menu(academy)
   print "Option".yellow, ": "
-  #  get user choice
   choice = STDIN.gets.chomp
 
-  #  exit if user types end, else invalid if not entirely a number
+  #  exit if user types end, else invalid if not a menu option
   until choice.downcase == "end"
     choice = choice.to_i if choice.scan(/\D/).empty?
     until (1..13).to_a.include?(choice)
@@ -1719,49 +1722,33 @@ def interface(academy)
 
     case choice
     when 1
-      #  view all students in the academy in one list
       view_all_students(academy)
     when 2
-      #  view all students in the academy divided into their cohorts
       view_all_cohorts(academy)
     when 3
-      #  view all students in a particular cohort
       view_a_cohort(academy)
     when 4
-      #  display student profiles at cohort level (divided by month)
       view_profiles_by_cohort(academy)
     when 5
-      #  display student profiles at academy level
       view_all_profiles(academy)
     when 6
-      #  add a new student (fill in a form)
       add_a_student(academy)
     when 7
-      #  delete a student from the academy
       delete_a_student(academy)
     when 8
-      #  move student from one cohort to another
       move_a_student(academy)
     when 9
-      #  filter students by either initial or maximum name length 
-      #  at cohort level (can add more options if necessary) 
       filter_at_cohort_level(academy)
     when 10
-      #  filter students by either initial or maximum name length 
-      #  at academy level (can add more options if necessary)
       filter_all_students(academy)
     when 11
-      #  edit a student
       edit_a_student(academy)
     when 12
-      #  create a cohort (provided that a cohort with that month doesn't exist)
       create_a_cohort(academy)
     when 13
-      #  redistribute the students evenly, considering the 30-students-per-cohort cap
-      #  doesn't allow user to delete if there is only one cohort
       delete_a_cohort(academy)
     end
-  
+
     puts long_bar
     puts "#{ academy.name }".bold.blue
     puts "Please choose another option".italic.blue
@@ -1777,18 +1764,19 @@ end
 
 =begin
 
-sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
-vader = Student.new("Darth Vader", {registered: true})
-hannibal = Student.new("Dr. Hannibal Lecter", {registered: true})
-nurse_ratched = Student.new("Nurse Ratched", {registered: true})
-michael_corleone = Student.new("Michael Corleone", {registered: true})
-alex_delarge = Student.new("Alex DeLarge", {registered: true})
-wicked_witch = Student.new("The Wicked Witch of the West", {registered: true})
-terminator = Student.new("Terminator", {registered: true})
-freddy_krueger = Student.new("Freddy Krueger", {registered: true})
-joker = Student.new("The Joker", {registered: true})
-joffrey = Student.new("Joffrey Baratheon", {registered: true})
-norman_bates = Student.new("Norman Bates", {registered: true})
+  #  student instances
+  sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
+  vader = Student.new("Darth Vader", {registered: true})
+  hannibal = Student.new("Dr. Hannibal Lecter", {registered: true})
+  nurse_ratched = Student.new("Nurse Ratched", {registered: true})
+  michael_corleone = Student.new("Michael Corleone", {registered: true})
+  alex_delarge = Student.new("Alex DeLarge", {registered: true})
+  wicked_witch = Student.new("The Wicked Witch of the West", {registered: true})
+  terminator = Student.new("Terminator", {registered: true})
+  freddy_krueger = Student.new("Freddy Krueger", {registered: true})
+  joker = Student.new("The Joker", {registered: true})
+  joffrey = Student.new("Joffrey Baratheon", {registered: true})
+  norman_bates = Student.new("Norman Bates", {registered: true})
 
 =end
 
@@ -1797,16 +1785,16 @@ villains_academy = Academy.new("Villains Academy")
 
 =begin
 
-#  create two cohorts
-va_november = Cohort.new("November")
-va_december = Cohort.new("December")
+  #  create two cohorts (now saved to csv)
+  va_november = Cohort.new("November")
+  va_december = Cohort.new("December")
 
-#  add students to cohorts
-va_november.add_student(sam, vader, hannibal, nurse_ratched, michael_corleone, alex_delarge)
-va_december.add_student(wicked_witch, terminator, freddy_krueger, joker, joffrey, norman_bates)
+  #  add students to cohorts (now saved)
+  va_november.add_student(sam, vader, hannibal, nurse_ratched, michael_corleone, alex_delarge)
+  va_december.add_student(wicked_witch, terminator, freddy_krueger, joker, joffrey, norman_bates)
 
-#  add cohorts to academy
-villains_academy.add_cohort(va_november, va_december)
+  #  add cohorts to academy (now saved)
+  villains_academy.add_cohort(va_november, va_december)
 
 =end
 
