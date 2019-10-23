@@ -188,7 +188,7 @@ module Validation
       puts short_bar
       if /^\d*\.?\d*$/.match(height) && height.to_f > 300
         puts "Invalid entry."
-        puts "Due to the events of last year we no longer accept giants into the academy.".blue
+        puts "Due to the events of last year we no longer accept giants into this academy.".blue
         puts ("Please enter #{ student.name }'s height (").blue + "in centimeters" + ")".blue
       elsif /^\d*\.?\d*$/.match(height) && height.to_f < 50
         puts "Invalid entry."
@@ -237,6 +237,30 @@ module Validation
       disability_status = gets.chomp.downcase
     end
     disability_status
+  end
+end
+
+module Saving
+  def save_students(academy)
+    #  open the file for writing
+    file = File.open("students.csv", "w")
+    #  save the academy name
+    file.puts academy.name
+    #  save each cohort
+    academy.cohorts.each { |cohort| 
+      cohort_data = [cohort.academy, cohort.month]
+      csv_line = cohort_data.join(", ")
+      file.puts csv_line
+      #  save all students for each cohort
+      cohort.students.each { |student| 
+        student_data = [student.name, student.age, student.gender, student.height, 
+                        student.country_of_birth, student.is_disabled, student.cohort, 
+                        student.registered, student.student_id]
+        csv_line = student_data.join(", ")
+        file.puts csv_line
+      }
+    }
+    file.close
   end
 end
 
@@ -295,6 +319,7 @@ class Academy
       |cohort| actual_months.index(cohort.month.downcase.to_sym) 
     }
   end
+
   private
 
   #  header of table
@@ -356,7 +381,7 @@ class Cohort
     month == "Whole Academy"
       @month = month.capitalize
     else
-      raise "Error: #{month} is not a month."
+      raise "Error: #{ month } is not a month."
     end
     @students = []
   end
@@ -427,7 +452,7 @@ class Cohort
   #  display all profiles of students in Cohort
   def student_profiles
     @students.each.with_index { |student, i| 
-        puts "#{ i+1 })".bold.yellow
+        puts "#{ i + 1 })".bold.yellow
         student.quick_facts 
     }
     puts " "
@@ -490,7 +515,7 @@ class Cohort
 
   #  body of table
   def print_body
-    #  dont display if there are no students
+    #  don't display if there are no students
     if @students.length < 1
       puts ("* NO STUDENTS ENROLLED *").center(94).red
     else
@@ -681,7 +706,6 @@ class Student
     self.quick_facts
     puts "What would you like to change about this entry?".center(53).bold.blue
     puts "   (Enter Number or type 'R' to abort)   ".center(53,"-")
-    #puts "()".center(53)
     puts short_bar
     puts "***".bold + ("1)".ljust(15).rjust(23).yellow + "Name".rjust(15).bold).center(53) +                        "***".rjust(12).bold
     puts "***".bold + ("2)".ljust(15).rjust(23).yellow + "Age".rjust(15).bold).center(53) +                         "***".rjust(12).bold
@@ -701,9 +725,9 @@ class Student
 
     #  exit edit mode if user types 'R'
     if number.downcase == 'r'
-    puts short_bar
-    puts "Done.  Current state of #{ self.name }'s profile".yellow + ":"
-    (self.quick_facts; exit_edit_mode; return)
+      puts short_bar
+      puts "Done.  Current state of #{ self.name }'s profile".yellow + ":"
+      (self.quick_facts; exit_edit_mode; return)
     end
 
     #  edit data for choice (using Validation mixin)
@@ -756,6 +780,8 @@ end
 def interface(academy)
   include Formatting
   include Validation
+  include Saving
+
   puts long_bar
   puts "Welcome to #{ academy.name }".bold.blue
   puts "Please choose an option".italic.blue
@@ -894,7 +920,7 @@ def interface(academy)
       list_cohort_months(academy)
       print "Enter a month".yellow, ": "
       cohort_choice = gets.chomp
-      if cohort_choice != ""  #  to menu
+      if cohort_choice != ""  #  else to menu
         until existing_cohorts.include?(cohort_choice.capitalize)
           puts "----"
           puts "Invalid entry.".italic.red
@@ -903,7 +929,7 @@ def interface(academy)
           list_cohort_months(academy)
           print "Enter a month".yellow, ": "
           cohort_choice = gets.chomp
-          break if cohort_choice == ""  #  to menu
+          break if cohort_choice == ""  #  else to menu
         end
 
         if cohort_choice != ""
@@ -935,7 +961,7 @@ def interface(academy)
       puts "(press return to go back to menu)".italic
       print "Answer".yellow, ": "
       yesno = gets.chomp
-      if yesno != ""  #  to menu
+      if yesno != ""  #  else to menu
         until ["Y", "y", "N", "n"].include?(yesno)
           puts "----"
           puts "Invalid Entry.".italic.red
@@ -943,7 +969,7 @@ def interface(academy)
           puts "(press return to go back to menu)".italic
           print "Answer".yellow, ": "
           yesno = gets.chomp
-          break if yesno == ""  #  to menu
+          break if yesno == ""  #  else to menu
         end
         if ["N", "n"].include?(yesno) 
           puts long_bar
@@ -951,7 +977,7 @@ def interface(academy)
           puts "Displaying all existing students..".italic.blue
           academy.all_students
         end
-        if yesno != ""  #  to menu
+        if yesno != ""  #  else to menu
           sure = ""  #  repeat until user is sure of deletion
           until ["Y", "y"].include?(sure)
             puts "----"
@@ -960,7 +986,7 @@ def interface(academy)
             print "ID".yellow, ": "
             #  get an ID, keeps asking until ID is valid
             to_delete = gets.chomp
-            break if to_delete == ""  #  to menu
+            break if to_delete == ""  #  else to menu
             until all_ids.include?(to_delete)
               puts "----"
               puts "Invalid entry.".italic.red
@@ -968,9 +994,9 @@ def interface(academy)
               puts "(press 'return' to go back to menu)".italic
               print "ID".yellow, ": "
               to_delete = gets.chomp
-              break if to_delete == ""  #  to menu (inner loop break)
+              break if to_delete == ""  #  else to menu (inner loop break)
             end
-            break if to_delete == ""  #  to menu (outer loop break)
+            break if to_delete == ""  #  else to menu (outer loop break)
             #  finds student with chosen ID
             if to_delete != ""
               selected_student = all_profiles.select { |profile|
@@ -1013,7 +1039,7 @@ def interface(academy)
       puts "(press return to go back to menu)".italic
       print "Answer".yellow, ": "
       yesno = gets.chomp.upcase
-      if yesno != ""  #  to menu
+      if yesno != ""  #  else to menu
         until ["Y", "y", "N", "n"].include?(yesno)
           puts "----"
           puts "Invalid Entry.".italic.red
@@ -1021,7 +1047,7 @@ def interface(academy)
           puts "(press return to go back to menu)".italic
           print "Answer".yellow, ": "
           yesno = gets.chomp.upcase
-          break if yesno == ""  #  to menu
+          break if yesno == ""  #  else to menu
         end
         if yesno == "N"
           puts long_bar
@@ -1029,7 +1055,7 @@ def interface(academy)
           puts "Displaying all existing students..".italic.blue
           academy.all_students
         end
-        if yesno != ""  #  to menu (skip rest of case)
+        if yesno != ""  #  else to menu (skip rest of case)
           sure = ""  #  repeat until user is sure of deletion
           until sure == "Y" || sure == "N"
             puts long_bar
@@ -1038,7 +1064,7 @@ def interface(academy)
             puts "(press 'return' to go back to menu)".italic
             print "ID".yellow, ": "
             student_to_move = gets.chomp
-            break if student_to_move == ""  #  to menu
+            break if student_to_move == ""  #  else to menu
             until all_ids.include?(student_to_move)
               puts "----"
               puts "Invalid entry.".italic.red
@@ -1046,9 +1072,9 @@ def interface(academy)
               puts "(press 'return' to go back to menu)".italic
               print "ID".yellow, ": "
               student_to_move = gets.chomp
-              break if student_to_move == ""  #  to menu (inner loop)
+              break if student_to_move == ""  #  else to menu (inner loop break)
             end
-            break if student_to_move == ""  #  to menu (outer loop)
+            break if student_to_move == ""  #  else to menu (outer loop break)
             #  selects student
             selected_student = all_profiles.select { |profile|
               profile if profile.student_id == student_to_move
@@ -1068,7 +1094,7 @@ def interface(academy)
             }
             print "Enter a month".yellow, ": "
             target_cohort = gets.chomp
-            if target_cohort != ""  #  to menu (inner loop)
+            if target_cohort != ""  #  else to menu (inner loop break)
               target_cohort = target_cohort.capitalize
               #  until target is a valid and seperate cohort
               until existing_cohorts.include?(target_cohort.capitalize) && selected_student.cohort != target_cohort.capitalize
@@ -1082,7 +1108,7 @@ def interface(academy)
                   }
                   print "Enter a month".yellow, ": "
                   target_cohort = gets.chomp
-                  break if target_cohort != ""  #  to menu (inner loop)
+                  break if target_cohort != ""  #  else to menu (inner loop)
                 else
                   puts "----"
                   puts "Invalid entry.".italic.red
@@ -1093,10 +1119,10 @@ def interface(academy)
                   }
                   print "Enter a month".yellow, ": "
                   target_cohort = gets.chomp
-                  break if target_cohort == ""  #  to menu (inner loop)
+                  break if target_cohort == ""  #  else to menu (inner loop)
                 end
               end
-              if target_cohort != ""  #  to menu
+              if target_cohort != ""  #  else to menu
                 target_cohort = target_cohort.capitalize
                 #  check if cohort is full
                 selected_cohort = academy.cohorts.select { |cohort| 
@@ -1139,7 +1165,7 @@ def interface(academy)
                 end
               end
             end
-            break if target_cohort == ""  #  to menu (outer outer loop)
+            break if target_cohort == ""  #  else to menu (outer OUTER loop break)
           end
         end
       end
@@ -1155,7 +1181,7 @@ def interface(academy)
       list_cohort_months(academy)
       print "Enter a month".yellow, ": "
       cohort_to_search = gets.chomp
-      if cohort_to_search != ""  #  to menu
+      if cohort_to_search != ""  #  else to menu
         until existing_cohorts.include?(cohort_to_search.capitalize)
           puts "----"
           puts "Invalid entry.".italic.red
@@ -1164,9 +1190,9 @@ def interface(academy)
           list_cohort_months(academy)
           print "Enter a month".yellow, ": "
           cohort_to_search = gets.chomp
-          break if cohort_to_search == ""  #  to menu
+          break if cohort_to_search == ""  #  else to menu
         end
-        if cohort_to_search != ""  #  to menu
+        if cohort_to_search != ""  #  else to menu
           cohort_to_search = cohort_to_search.capitalize
           #  locate cohort in question
           filter_cohort = academy.cohorts.select{ |cohort| 
@@ -1182,7 +1208,7 @@ def interface(academy)
           #  get choice
           print "Option".yellow, ": "
           filter_by = gets.chomp
-          if filter_by != ""  #  to menu
+          if filter_by != ""  #  else to menu
             until filter_by.scan(/\D/).empty? && (1..2).to_a.include?(filter_by.to_i)
               puts "----"
               puts "Invalid entry.".italic.red
@@ -1194,7 +1220,7 @@ def interface(academy)
               filter_by = gets.chomp
               break if filter_by == ""
             end
-            if filter_by != ""  #  to menu
+            if filter_by != ""  #  else to menu
               filter_by = filter_by.to_i
 
               case filter_by
@@ -1205,7 +1231,7 @@ def interface(academy)
                 puts "(press 'return' to go back to menu)".italic
                 print "Initial".yellow, ": "
                 initial = gets.chomp
-                if initial != ""  #  to menu
+                if initial != ""  #  else to menu
                   until initial.length == 1 && (/[a-zA-Z]/).match(initial.upcase)
                     puts "----"
                     puts "Invalid entry.".italic.red
@@ -1277,7 +1303,7 @@ def interface(academy)
       puts "(press 'return' to go back to menu)".italic
       print "Option".yellow, ": "
       filter_by = gets.chomp
-      if filter_by != ""  #  to menu
+      if filter_by != ""  #  else to menu
         until filter_by.scan(/\D/).empty? && (1..2).to_a.include?(filter_by.to_i)
           puts "----"
           puts "Invalid entry.".italic.red
@@ -1287,9 +1313,9 @@ def interface(academy)
           puts "(press 'return' to go back to menu)".italic
           print "Option".yellow, ": "
           filter_by = gets.chomp
-          break if filter_by == ""  #  to menu
+          break if filter_by == ""  #  else to menu
         end
-        if filter_by != ""  #  to menu
+        if filter_by != ""  #  else to menu
           filter_by = filter_by.to_i
           case filter_by
           when 1
@@ -1299,7 +1325,7 @@ def interface(academy)
             puts "(press 'return' to go back to menu)".italic
             print "Initial".yellow, ": "
             initial = gets.chomp
-            if initial != ""  #  to menu
+            if initial != ""  #  else to menu
               until initial.length == 1 && (/[a-zA-Z]/).match(initial.upcase)
                 puts "----"
                 puts "Invalid entry.".italic.red
@@ -1307,9 +1333,9 @@ def interface(academy)
                 puts "(press 'return' to go back to menu)".italic
                 print "Initial".yellow, ": "
                 initial = gets.chomp
-                break if initial == ""  #  to menu
+                break if initial == ""  #  else to menu
               end
-              if initial != ""  #  to menu
+              if initial != ""  #  else to menu
                 initial = initial.upcase
                 puts long_bar
                 " "
@@ -1326,7 +1352,7 @@ def interface(academy)
             puts "(press 'return' to go back to menu)".italic
             print "Max length".yellow, ": "
             limit = gets.chomp
-            if limit != ""  #  to menu
+            if limit != ""  #  else to menu
               until limit.scan(/\D/).empty? && limit.to_i > 0 
                 puts "----"
                 puts "Invalid entry.".italic.red
@@ -1334,9 +1360,9 @@ def interface(academy)
                 puts "(press 'return' to go back to menu)".italic
                 print "Max length".yellow, ": "
                 limit = gets.chomp
-                break if limit == ""  #  to menu
+                break if limit == ""  #  else to menu
               end
-              if limit != ""  #  to menu
+              if limit != ""  #  else to menu
                 puts long_bar
                 puts " "
                 puts "Filtering student names with at most ".italic.blue + "#{ limit }".bold.italic.blue + " letters..".italic.blue
@@ -1359,7 +1385,7 @@ def interface(academy)
       puts "(press return to go back to menu)".italic
       print "ID".yellow, ": "
       student_choice = gets.chomp
-      if student_choice != ""  #  to menu
+      if student_choice != ""  #  else to menu
         student_to_edit = all_profiles.select { |student| student if student.student_id == student_choice }[0]
         until student_to_edit  #  exists
           puts "----"
@@ -1368,10 +1394,10 @@ def interface(academy)
           puts "(press return to go back to menu)".italic
           print "ID".yellow, ": "
           student_choice = gets.chomp
-          break if student_choice == ""  #  to menu
+          break if student_choice == ""  #  else to menu
           student_to_edit = all_profiles.select { |student| student if student.student_id == student_choice }[0]
         end
-        if student_choice != ""  #  to menu
+        if student_choice != ""  #  else to menu
           puts short_bar
           student_to_edit.edit_student
           puts " "
@@ -1409,7 +1435,7 @@ def interface(academy)
       list_cohort_months(academy)
       print "New cohort".yellow, ": "
       new_month = gets.chomp
-      if new_month != ""  #  to menu
+      if new_month != ""  #  else to menu
         #  check if entry is a valid month (Validation mixin) 
         #  and if cohort already exists
         until actual_months.include?(new_month.downcase.to_sym) && 
@@ -1421,7 +1447,7 @@ def interface(academy)
             puts "(press return to go back to menu)".italic
             print "Enter a month".yellow, ": "
             new_month = gets.chomp
-            break if new_month == ""  #  to menu
+            break if new_month == ""  #  else to menu
           else
             puts "----"
             puts "Invalid month.".italic.red
@@ -1429,10 +1455,10 @@ def interface(academy)
             puts "(press return to go back to menu)".italic
             print "Enter a month".yellow, ": "
             new_month = gets.chomp
-            break if new_month == ""  #  to menu
+            break if new_month == ""  #  else to menu
           end
         end
-        if new_month != ""  #  to menu
+        if new_month != ""  #  else to menu
           puts long_bar
           puts " "
           #  create new cohort and add it to the academy
@@ -1480,7 +1506,7 @@ def interface(academy)
           list_cohort_months(academy)
           print "Enter a month".yellow, ": "
           target_cohort = gets.chomp
-          if target_cohort != ""  #  to menu
+          if target_cohort != ""  #  else to menu
             target_cohort = target_cohort.capitalize
             until existing_cohorts.include?(target_cohort.capitalize)
               puts "----"
@@ -1490,9 +1516,9 @@ def interface(academy)
               list_cohort_months(academy)
               print "Enter a month".yellow, ": "
               target_cohort = gets.chomp
-              break if target_cohort == ""  #  to menu
+              break if target_cohort == ""  #  else to menu
             end
-            if target_cohort != ""  #  to menu
+            if target_cohort != ""  #  else to menu
               target_cohort = target_cohort.capitalize
               puts long_bar
               puts " "
@@ -1560,12 +1586,13 @@ def interface(academy)
   end
   puts long_bar
   goodbye
+  save_students(academy)
 end
 
 # object instances
 
 #  converted test entries to Student objects
-sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+sam = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
 vader = Student.new("Darth Vader", {registered: true})
 hannibal = Student.new("Dr. Hannibal Lecter", {registered: true})
 nurse_ratched = Student.new("Nurse Ratched", {registered: true})
@@ -1577,7 +1604,7 @@ freddy_krueger = Student.new("Freddy Krueger", {registered: true})
 joker = Student.new("The Joker", {registered: true})
 joffrey = Student.new("Joffrey Baratheon", {registered: true})
 norman_bates = Student.new("Norman Bates", {registered: true})
-sam2 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+sam2 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
 vader2 = Student.new("Darth Vader", {registered: true})
 hannibal2 = Student.new("Dr. Hannibal Lecter", {registered: true})
 nurse_ratched2 = Student.new("Nurse Ratched", {registered: true})
@@ -1589,7 +1616,7 @@ freddy_krueger2 = Student.new("Freddy Krueger", {registered: true})
 joker2 = Student.new("The Joker", {registered: true})
 joffrey2 = Student.new("Joffrey Baratheon", {registered: true})
 norman_bates2 = Student.new("Norman Bates", {registered: true})
-sam3 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+sam3 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
 vader3 = Student.new("Darth Vader", {registered: true})
 hannibal3 = Student.new("Dr. Hannibal Lecter", {registered: true})
 nurse_ratched3 = Student.new("Nurse Ratched", {registered: true})
@@ -1601,7 +1628,7 @@ freddy_krueger3 = Student.new("Freddy Krueger", {registered: true})
 joker3 = Student.new("The Joker", {registered: true})
 joffrey3 = Student.new("Joffrey Baratheon", {registered: true})
 norman_bates3 = Student.new("Norman Bates", {registered: true})
-sam4 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+sam4 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
 vader4 = Student.new("Darth Vader", {registered: true})
 hannibal4 = Student.new("Dr. Hannibal Lecter", {registered: true})
 nurse_ratched4 = Student.new("Nurse Ratched", {registered: true})
@@ -1613,7 +1640,7 @@ freddy_krueger4 = Student.new("Freddy Krueger", {registered: true})
 joker4 = Student.new("The Joker", {registered: true})
 joffrey4 = Student.new("Joffrey Baratheon", {registered: true})
 norman_bates4 = Student.new("Norman Bates", {registered: true})
-sam5 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England,", is_disabled: true, registered: true})
+sam5 = Student.new("Sam", {age: 25, gender: "M", height: 198, country_of_birth: "England", is_disabled: true, registered: true})
 vader5 = Student.new("Darth Vader", {registered: true})
 hannibal5 = Student.new("Dr. Hannibal Lecter", {registered: true})
 nurse_ratched5 = Student.new("Nurse Ratched", {registered: true})
