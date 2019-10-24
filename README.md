@@ -13,7 +13,7 @@ To access it, simply enter
 
 ## Features ##
 
-The menu provides the user a list of features to help them manipulate the directory
+The menu provides the user a list of features to help them manipulate the directory.\
 The directory allows you to:
 
 ### Display all students in the academy
