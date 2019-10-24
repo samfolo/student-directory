@@ -11,6 +11,8 @@ To access it, simply enter
 
 ## Features ##
 
+<img src="home menu student dir.png"/>
+
 ### Display all students in the academy
    - View a table with all the students in the academy, their unique IDs and cohort month
 -----------------------------------
@@ -64,7 +66,7 @@ To access it, simply enter
    
 ### Exit program and automatically save your changes to a .csv file
    - The directory saves its data as a CSV file – no need to actively save anything as all your changes are saved upon exit
-   - For more drastic changes like moving a student, deleting a student and removing a cohort) you are prompted at least once to confirm your choice
+   - For more drastic changes i.e. moving a student, deleting a student and removing a cohort) you are prompted at least once to confirm your choice
 
 -----------------------------------
 
