@@ -49,6 +49,7 @@ The directory allows you to:
 ### Create and add a student to a specific cohort
    - You will be asked which cohort you would like to add a student to, after which you can fill out a form, entering in the details for any student you wish to create
    - When entering a country, suggestions will be made for any misspelt country names
+   - Each cohort has a capacity of 30 students, so this operation will be denied if a cohort is full
    <img src="README images/option 6.png"/>
    
 -----------------------------------
@@ -63,6 +64,7 @@ The directory allows you to:
    - If you wish to move a student from one cohort from the other:
      - You will be asked for their ID and the student will be located
      - You will then be asked for a target cohort (a list which excludes the student's current cohort)
+   - If a cohort is full, migration will not be possible
    <img src="README images/option 8.png"/>
      
 -----------------------------------
@@ -95,16 +97,17 @@ The directory allows you to:
 
 ### Remove a cohort from the academy
    - The directory also allows users to remove an existing cohort
-   - When a cohort with students is deleted, its students are distributed randomly across all other existing cohorts
+   - When a cohort with students is deleted, its students are distributed evenly across all other existing cohorts
+     (until any such cohort reaches capacity, at which point the directory will remove it from rotation)
    - Just before deletion, the user is asked to type 'confirm' to ensure their decision is being made consciously
-   - The user cannot delete the last remaining cohort – the students will have nowhere else to go (and under such circumstances they are well within their rights to sue).
+   - The user cannot delete the last remaining cohort – the students will have nowhere else to go (and under such circumstances we have been advised they are well within their rights to sue)
    <img src="README images/option 13.png"/>
    
 -----------------------------------
    
 ### Exit program and automatically save your changes to a .csv file
    - The directory saves its data as a CSV file – no need to actively save anything as all your changes are saved upon exit
-   - For more drastic changes i.e. moving a student, deleting a student and removing a cohort) you are prompted at least once to confirm your choice
+   - For more drastic changes (i.e. moving a student, deleting a student and removing a cohort) you are prompted at least once to confirm your choice
 
 -----------------------------------
 
