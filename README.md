@@ -8,12 +8,9 @@ The directory runs entirely in the command line and uses no external libraries.
 To access it, simply enter
     
     ruby directory.rb
-    
-
------------------------------------
 
 ## Features ##
------------------------------------
+
 ### Display all students in the academy
    - View a table with all the students in the academy, their unique IDs and cohort month
 -----------------------------------
