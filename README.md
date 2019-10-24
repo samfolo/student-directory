@@ -18,6 +18,7 @@ The directory allows you to:
 
 ### Display all students in the academy
    - View a table with all the students in the academy, their unique IDs and cohort month
+   - The seven-digit ID numbers are created and validated using Luhn's algorithm before assignment
    <img src="README images/option 1.png"/>
    
 -----------------------------------
