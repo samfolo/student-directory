@@ -1,2 +1,2 @@
 puts File.read($0)
-"This is a quine"
+"Is this a quine..?"
