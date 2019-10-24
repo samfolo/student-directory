@@ -43,7 +43,7 @@ To access it, simply enter
    - Search through the a specific cohort, filtering either by the initial of their first name or the length of their whole name
    - The filter method excludes prefixes (e.g. 'Mrs', 'Mx', 'Master', 'Darth'..)
 -----------------------------------
-### Filter students at whole school level (by initial or by name length)
+### Filter students at whole-school level (by initial or by name length)
    - Filter through the entire directory, again either by name or by maximum length (excluding prefixes)
 -----------------------------------
 ### "Edit mode": edit one or more attributes for a student
@@ -62,7 +62,7 @@ To access it, simply enter
    
 -----------------------------------
    
-### exit program and automatically save your changes to a csv file
+### Exit program and automatically save your changes to a .csv file
    - The directory saves its data as a CSV file – no need to actively save anything as all your changes are saved upon exit
    - For more drastic changes like moving a student, deleting a student and removing a cohort) you are prompted at least once to confirm your choice
 
