@@ -1713,39 +1713,40 @@ def interface(academy)
 
   #  exit if user types end, else invalid if not a menu option
   until choice.downcase == "end"
-    choice = choice.to_i if choice.scan(/\D/).empty?
-    until (1..13).to_a.include?(choice)
+    until ("1".."13").to_a.include?(choice)
       puts "Invalid choice. Please pick an option from the menu".red
       print "Option".yellow, ": "
-      choice = STDIN.gets.chomp.to_i
+      choice = STDIN.gets.chomp
+      break if choice.downcase == "end"  #  (inner loop break)
     end
+    break if choice.downcase == "end"  #  (outer loop break)
 
     case choice
-    when 1
+    when "1"
       view_all_students(academy)
-    when 2
+    when "2"
       view_all_cohorts(academy)
-    when 3
+    when "3"
       view_a_cohort(academy)
-    when 4
+    when "4"
       view_profiles_by_cohort(academy)
-    when 5
+    when "5"
       view_all_profiles(academy)
-    when 6
+    when "6"
       add_a_student(academy)
-    when 7
+    when "7"
       delete_a_student(academy)
-    when 8
+    when "8"
       move_a_student(academy)
-    when 9
+    when "9"
       filter_at_cohort_level(academy)
-    when 10
+    when "10"
       filter_all_students(academy)
-    when 11
+    when "11"
       edit_a_student(academy)
-    when 12
+    when "12"
       create_a_cohort(academy)
-    when 13
+    when "13"
       delete_a_cohort(academy)
     end
 
