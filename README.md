@@ -13,6 +13,9 @@ To access it, simply enter
 
 <img src="home menu student dir.png"/>
 
+The menu provides the user a list of features to help them manipulate the directory
+The directory allows you to:
+
 ### Display all students in the academy
    - View a table with all the students in the academy, their unique IDs and cohort month
 -----------------------------------
