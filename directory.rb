@@ -1608,7 +1608,7 @@ def delete_a_cohort(academy)
     puts "An academy must have at least one cohort.".blue
     puts " "
   #  also doesn't allow if there are not enough cohorts to house every student
-  elsif academy.all_profiles.count / 30 > academy.cohorts - 1
+  elsif academy.all_profiles.count / 30 > academy.cohorts.length - 1
     puts long_bar
     puts " "
     puts "Operation denied".italic.red
